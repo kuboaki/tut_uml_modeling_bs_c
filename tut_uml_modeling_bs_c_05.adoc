@@ -24,16 +24,14 @@ endif::[]
 
 // このファイルのコードのタグの行番号をRakefile内のメソッドで求めているのに注意すること。
 
-
+////
 [[ruby_all_code01]]
 .【Ruby】score.rb
-//[example]
-//--
 [source,ruby,linenums,start={score_main_start}]
 ----
 include::{sourcesdir}/score.rb[tag=main]
 ----
-//--
+////
 
 <<<<
 
@@ -46,11 +44,9 @@ include::{sourcesdir}/score.rb[tag=main]
 
 // このファイルのコードのタグの行番号をRakefile内のメソッドで求めているのに注意すること。
 
+////
 [[ruby_all_code02]]
 .【Ruby】score.rb（ファイル末尾に追加したテストコード部分）
-//[example]
-//--
-// [source,ruby,linenums]
 [source,ruby,linenums,start={score_test_start}]
 ----
 include::{sourcesdir}/score.rb[tag=test]
@@ -68,7 +64,7 @@ include::{sourcesdir}/score.rb[tag=test]
 <11> 現在のturnのプレーヤーのスコアにピン数を渡して、スコアへ反映する。
 <12> 現在のゲームの全体像を取得して表示する。
 <13> ここで空の改行キーを入力してテストを進める。テストを1回ずつ止めて実行できる。この入力待ちをやめれば一括して実行できる。
-//--
+////
 
 
 === プログラムをテストする
@@ -82,13 +78,11 @@ include::{sourcesdir}/score.rb[tag=test]
 
 フレームの状態の変化を追ってみて、フレームのステートマシン図と対応していることを確認してみましょう。
 
-
+////
 [[ruby_all_code03]]
 .【端末】score.rb を実行する
 [source,console]
 ----
-C:\Users\kuboaki>cd Desktop\BowlingScore
-
 C:\Users\kuboaki\Desktop\BowlingScore>ruby score.rb
 Score Sheet Date: 2022-02-26 02:08:21 +0900(id:0GG70gNRWtk) # <1>
 ----------------------------------------
@@ -182,6 +176,8 @@ C:\Users\kuboaki\Desktop\BowlingScore>
 <6> 前の前のフレームを無条件に扱うためのダミーフレーム。
 <7> 1投目が終わったので、フレームは2投目の投球前の状態。
 <8> ここは2投目の投球前の状態だが、第10フレームの状態が「FIXED」なのでゲームは終了。
+////
+
 
 
 動作を確認できるよう、テストプログラムを実行した様子を収めた動画を用意しました。
