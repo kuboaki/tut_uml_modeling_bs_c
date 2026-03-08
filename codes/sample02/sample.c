@@ -1,13 +1,31 @@
 #include "sample.h" // <1>
 
-// tag::sample_init[]
 void sample_init(Sample *sample) {
     sample->attr_a = true;
     sample->attr_b = true;
-    sample->state = ST0; // <1>
+    sample->state = ST0; // <2>
 }
-// end::sample_init[]
-// tag::sample_st0_proc[]
+
+static bool gd1(Sample *sample) {
+    return sample->attr_a && sample->attr_b;
+}
+
+static bool gd2(Sample *sample) {
+    return !sample->attr_a || sample->attr_b;
+}
+
+static void act1(Sample *sample, SampleEvent evt, int prm) {
+    printf("    act1: state: %d, event:%d, param: %d\n", sample->state, evt, prm);
+}
+
+static void act2(Sample *sample, SampleEvent evt, int prm) {
+    printf("    act2: state: %d, event:%d, param: %d\n", sample->state, evt, prm);
+}
+
+static void act3(Sample *sample, SampleEvent evt, int prm) {
+    printf("    act3: state: %d, event:%d, param: %d\n", sample->state, evt, prm);
+}
+
 static void st0_proc(Sample *sample, SampleEvent evt, int param) {
     switch (evt) {  // <1>
         case EV1:  // <2>
@@ -27,16 +45,16 @@ static void st0_proc(Sample *sample, SampleEvent evt, int param) {
             break;
     }
 }
-// end::sample_st0_proc[]
-// tag::sample_st1_proc[]
+
 static void st1_proc(Sample *sample, SampleEvent evt, int param) {
     switch (evt) {  // <1>
-        case EV1:  // <2>
-            if (gd1(sample)) {  // <3>
-                act1(sample, evt, param);  // <4>
-                sample->state = ST1;  // <5>
+        case EV2:  // <2>
+            act2(sample, evt, param);  // <4>
+            if (gd2(sample)) {  // <3>
+                act3(sample, evt, param);  // <4>
+                sample->state = ST0;  // <5>
             } else {
-                printf("Event ignored due to guard condition\n");  // <6>
+                sample->state = ST2;  // <6>
             }
             break;
         case EV3:  // <7>
@@ -48,19 +66,17 @@ static void st1_proc(Sample *sample, SampleEvent evt, int param) {
             break;
     }
 }
-// end::sample_st1_proc[]
-// tag::sample_play[]
-void sample_play(Sample *sample, SampleEvent evt, int param) {
-    switch (sample->state) {  // <1>
-        case ST0:  // <2>
-            st0_proc(sample, evt, param);  // <3>
+
+void sample_play(Sample *sample, SampleEvent evt, int param) { // <1>
+    switch (sample->state) {  // <2>
+        case ST0:  // <3>
+            st0_proc(sample, evt, param);  // <4>
             break;
         case ST1:
             st1_proc(sample, evt, param);
             break;
         case ST2:
-            st2_proc(sample, evt, param);
+            // none
             break;
     }
 }
-// end::sample_play[]

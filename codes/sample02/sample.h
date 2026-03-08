@@ -23,6 +23,6 @@ typedef struct {
 } Sample;
 
 void sample_init(Sample *sample);
-void sample_play(Sample *sample, SampleEvent evt, int p01);
+void sample_play(Sample *sample, SampleEvent evt, int p01); // <1>
 
 #endif /* SAMPLE_H */

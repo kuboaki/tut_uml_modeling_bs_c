@@ -1,0 +1,90 @@
+C:\Users\（演習用ディレクトリ）>cd sample03
+C:\Users\（演習用ディレクトリ）>\sample03> ./sample # <1>
+ST0
+ST2
+invalid state: 3.
+ST2
+ST1
+- - - -
+================
+ST0 ->
+  event:ev1, param: 6642
+    gd1: true
+     act1: event:ev1, param: 6642
+       -> ST1
+ST1 ->
+  event:ev2, param: 6644
+     act2: event:ev2, param: 6644
+    gd2: true
+       -> ST2
+finished.
+----------------
+ST0 ->
+  event:ev3, param: 6644
+     act3: event:ev3, param: 6644
+       -> ST2
+finished.
+----------------
+ST0 ->
+  event:ev1, param: 6646
+    gd1: true
+     act1: event:ev1, param: 6646
+       -> ST1
+ST1 ->
+  event:ev3, param: 6647
+     act3: event:ev3, param: 6647
+       -> ST0
+ST0 ->
+  event:ev3, param: 6647
+     act3: event:ev3, param: 6647
+       -> ST2
+finished.
+----------------
+================
+ST0 ->
+  event:ev1, param: 6648
+    <<< gd1: false, transition is ignored. >>>
+       -> ST0
+ST0 ->
+  event:ev3, param: 6648
+     act3: event:ev3, param: 6648
+       -> ST2
+finished.
+----------------
+ST0 ->
+  event:ev1, param: 6649
+    <<< gd1: false, transition is ignored. >>>
+       -> ST0
+ST0 ->
+  event:ev2, param: 6649
+       -> ST0
+ST0 ->
+  event:ev3, param: 6650
+     act3: event:ev3, param: 6650
+       -> ST2
+finished.
+----------------
+================
+ST0 ->
+  event:ev1, param: 6651
+    gd1: true
+     act1: event:ev1, param: 6651
+       -> ST1
+ST1 ->
+  event:ev2, param: 6651
+     act2: event:ev2, param: 6651
+    gd2: false
+     act3: event:ev2, param: 6651
+       -> ST0
+ST0 ->
+  event:ev3, param: 6652
+     act3: event:ev3, param: 6652
+       -> ST2
+finished.
+----------------
+ST0 ->
+  event:ev3, param: 6652
+     act3: event:ev3, param: 6652
+       -> ST2
+finished.
+----------------

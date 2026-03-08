@@ -3,5 +3,6 @@
 int main(void) {
     Sample smpl01;               // <2>
     sample_init(&smpl01);        // <3>
-    sample_play(&smpl01);        // <4>
+    SampleEvent evt = EV1;
+    sample_play(&smpl01, evt, 1); // <4>
 }
