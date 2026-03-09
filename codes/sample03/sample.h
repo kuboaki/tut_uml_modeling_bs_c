@@ -12,8 +12,6 @@ typedef enum {
     ST_INVALID
 } State;
 
-const char *state_name(State s);
-
 /* ---------- SampleState ---------- */
 
 typedef struct {
@@ -32,16 +30,18 @@ typedef enum {
     EV_UNKNOWN
 } Event;
 
-const char *event_name(Event e);
-
 /* ---------- Sample ---------- */
 
 typedef struct {
+    bool attr_a;
+    bool attr_b;
     SampleState state;
-    bool guards[2];
 } Sample;
 
 void sample_init(Sample *s);
 void sample_play(Sample *s, Event evt, int p01);
+
+const char *state_name(State s); // <1>
+const char *event_name(Event e); // <2>
 
 #endif /* SAMPLE_H */

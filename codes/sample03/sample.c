@@ -3,7 +3,7 @@
 
 /* ---------- State ---------- */
 
-const char *state_name(State s) {
+const char *state_name(State s) { // <1>
     switch (s) {
         case ST0: return "ST0";
         case ST1: return "ST1";
@@ -29,7 +29,7 @@ State sample_state_transit_to(SampleState *ss, State new_state) {
 
 /* ---------- Event ---------- */
 
-const char *event_name(Event e) {
+const char *event_name(Event e) { // <2>
     switch (e) {
         case EV1: return "ev1";
         case EV2: return "ev2";
@@ -42,59 +42,59 @@ const char *event_name(Event e) {
 
 void sample_init(Sample *s) {
     sample_state_init(&s->state);
-    s->guards[0] = true;
-    s->guards[1] = true;
+    s->attr_a = true;
+    s->attr_b = true;
 }
 
-static void act1(Event evt, int prm) { // <1>
+static bool gd1(const Sample *s) {
+    return s->attr_a && s->attr_b;
+}
+
+static bool gd2(const Sample *s) {
+    return !s->attr_a || s->attr_b;
+}
+
+static void act1(Event evt, int prm) {
     printf("     act1: event:%s, param: %d\n", event_name(evt), prm);
 }
 
-static void act2(Event evt, int prm) { // <1>
+static void act2(Event evt, int prm) {
     printf("     act2: event:%s, param: %d\n", event_name(evt), prm);
 }
 
-static void act3(Event evt, int prm) { // <1>
+static void act3(Event evt, int prm) {
     printf("     act3: event:%s, param: %d\n", event_name(evt), prm);
-}
-
-static bool gd1(const Sample *s) { // <2>
-    return s->guards[0] && s->guards[1];
-}
-
-static bool gd2(const Sample *s) { // <2>
-    return !s->guards[0] || s->guards[1];
 }
 
 static void st0_proc(Sample *s, Event evt, int p01) {
     switch (evt) {
-        case EV1:
-            if (gd1(s)) {
-                printf("    gd1: true\n");
-                act1(evt, p01);
-                sample_state_transit_to(&s->state, ST1);
-            } else {
-                printf("    <<< gd1: false, transition is ignored. >>>\n");
-            }
-            break;
-        case EV3:
-            act3(evt, p01);
-            sample_state_transit_to(&s->state, ST2);
-            break;
-        default:
-            break;
+    case EV1:
+        if (gd1(s)) {
+            printf("    gd1: true\n");
+            act1(evt, p01);
+            sample_state_transit_to(&s->state, ST1);
+        } else {
+            printf("    <<< gd1: false, transition is ignored. >>>\n");
+        }
+        break;
+    case EV3:
+        act3(evt, p01);
+        sample_state_transit_to(&s->state, ST2);
+        break;
+    default:
+        break;
     }
 }
 
 static void st1_proc(Sample *s, Event evt, int p01) {
     switch (evt) {
-    case EV2: // <1>
-        act2(evt, p01); // <2>
+    case EV2:
+        act2(evt, p01);
         printf("    gd2: %s\n", gd2(s) ? "true" : "false");
-        if (gd2(s)) { // <3>
-            sample_state_transit_to(&s->state, ST2); // <4>
+        if (gd2(s)) {
+            sample_state_transit_to(&s->state, ST2);
         } else {
-            act3(evt, p01); // <5>
+            act3(evt, p01);
             sample_state_transit_to(&s->state, ST0);
         }
         break;

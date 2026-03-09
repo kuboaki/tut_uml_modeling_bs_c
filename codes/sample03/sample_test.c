@@ -7,8 +7,8 @@ static void test_base(const Event *events_list[], int list_size,
     for (int i = 0; i < list_size; i++) {
         Sample samp;
         sample_init(&samp);
-        samp.guards[0] = g0;
-        samp.guards[1] = g1;
+        samp.attr_a = g0;
+        samp.attr_b = g1;
 
         for (int j = 0; j < sizes[i]; j++) {
             int p = (int)(clock() % 1000000);
