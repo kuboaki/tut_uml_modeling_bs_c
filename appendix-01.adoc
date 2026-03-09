@@ -6,8 +6,11 @@
 .ボウリングのゲームスコアのモデル図（ `models` フォルダにあります）
 * `bowling_score.asta`
 
-.Rubyで実装したプログラム（ `codes` フォルダにあります）
-* `score.rb`
+.C言語で実装したプログラム（ `codes` フォルダにあります）
+* `score/bowling.c`
+* `score/bowling.h`
+* `score/main.c`
+* `score/Makefile`
 
 .実行している様子の動画（ `videos` フォルダにあります）
 * `score_rb_demo_win.mp4`

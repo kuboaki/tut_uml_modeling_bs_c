@@ -20,8 +20,8 @@
 <h1>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</h1>
 <div class="details">
 <span id="author" class="author">株式会社チェンジビジョン</span><br>
-<span id="revnumber">バージョン html 0786,</span>
-<span id="revdate">2026-03-05</span>
+<span id="revnumber">バージョン html 0795,</span>
+<span id="revdate">2026-03-09</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">目次</div>
@@ -40,11 +40,19 @@
 </li>
 <li><a href="_model_to_code_design.html#_対応づけ検討用モデルの作成">3.2. 対応づけ検討用モデルの作成</a>
 </li>
-<li><a href="_model_to_code_design.html#_ステートマシン図に対応するコードを作成する">3.3. ステートマシン図に対応するコードを作成する</a>
+<li><a href="_model_to_code_design.html#_構造のモデルとコードを対応づける1">3.3. 構造のモデルとコードを対応づける（1）</a>
 </li>
-<li><a href="_model_to_code_design.html#_変換ルールを使ったコードを確認する">3.4. 変換ルールを使ったコードを確認する</a>
+<li><a href="_model_to_code_design.html#_振る舞いのモデルを作成する">3.4. 振る舞いのモデルを作成する</a>
 </li>
-<li><a href="_model_to_code_design.html#_まとめ_2">3.5. まとめ</a>
+<li><a href="_model_to_code_design.html#_振る舞いのモデルにコードを対応づける">3.5. 振る舞いのモデルにコードを対応づける</a>
+</li>
+<li><a href="_model_to_code_design.html#_ステートマシン図に対応するコードを作成する">3.6. ステートマシン図に対応するコードを作成する</a>
+</li>
+<li><a href="_model_to_code_design.html#_追加したアクションをクラス図に反映する">3.7. 追加したアクションをクラス図に反映する</a>
+</li>
+<li><a href="_model_to_code_design.html#_変換ルールを使ったコードを確認する">3.8. 変換ルールを使ったコードを確認する</a>
+</li>
+<li><a href="_model_to_code_design.html#_まとめ_2">3.9. まとめ</a>
 </li>
 </ul>
 </li>
@@ -76,13 +84,27 @@
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/tip.png" alt="ヒント">
+<div class="title">ヒント</div>
 </td>
 <td class="content">
 このような対応づけを「モデル変換ルール」と呼ぶこともあります。また、開発プロセスのなかでこの対応づけを検討する工程を「方式設計」と呼ぶ人もいます。
 </td>
 </tr>
 </table>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">この章の役割についてもう少し</div>
+<div class="paragraph">
+<p>この章で検討したいことは、ボウリングのスコアに関してどのようなモデルを作るのか、という話題から少し離れています。
+モデルをどのように実装するのかということは、モデルの表し方とコードの表し方の間の関係を定めるものであって、ボウリングのスコアをどのようなモデルとして表すかということとは独立している話題だからです。</p>
+</div>
+<div class="paragraph">
+<p>もし、この章の役割がピンとこないとか、実装についての議論にはあまり関心がないのであれば、最初はこの章を読み飛ばしてみてもかまいません。
+後の章へ進めば、実装する人がモデルを使う際には、モデルとコードを対応づける必要があり、事前に実装方式を決めておかなければ、実装者が実装方法について考える（実装時に「どのように作るのか」を設計する）必要があることに気づくでしょう。
+そのときは、この章に戻って、どうして実装方式の設計が必要なのか考えてもらえたらと思います。</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_なぜ対応づけの検討が必要なのか"><a class="anchor" href="#_なぜ対応づけの検討が必要なのか"></a>3.1. なぜ対応づけの検討が必要なのか</h3>
@@ -98,10 +120,10 @@
 <div class="title">設計書の役割</div>
 <ul>
 <li>
-<p>「何を作るか」について、構造と振る舞いをもって示す。</p>
+<p><strong>「何を作るか」</strong> について、構造と振る舞いをもって示す。</p>
 </li>
 <li>
-<p>「どのようにして作るか」について、設計書と実装の対応づけをもって示す。</p>
+<p><strong>「どのようにして作るか」</strong> について、設計書と実装の対応づけをもって示す。</p>
 </li>
 </ul>
 </div>
@@ -112,7 +134,7 @@
 </div>
 <div class="paragraph">
 <p>では、「どのようにして作るか」の設計書とはどんなものでしょうか。
-これは、例えば、設計書にクラスがあったらC言語の構造体に対応づけるとか、状態遷移は2次元配列を使って遷移表として実装しようとか…そういった、設計書に記載した要素に対して、実装するときにコードのどの部分にどのように反映するかを示した設計書です。</p>
+これは、例えば、設計書にクラスがあったらC言語の構造体やRubyのクラスに対応づけるとか、状態遷移は2次元配列を使って遷移表として実装しようとか…そういった、設計書に記載した要素に対して、実装するときにコードのどの部分にどのように反映するかを示した設計書です。</p>
 </div>
 <div class="paragraph">
 <p>先に挙げた「何を作るか」の設計書には、「どのような実装方法で実装するのか」は書いてありません。
@@ -125,27 +147,13 @@
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/note.png" alt="注記">
+<div class="title">注記</div>
 </td>
 <td class="content">
 「モデル駆動開発（MDD）」という開発手法に、「モデル・タイプマッピング」と呼ばれる、2つのモデルの間の対応づけについての考え方があります。モデルとコードの対応づけは、タイプマッピングの一種とみなすこともできます。
 </td>
 </tr>
 </table>
-</div>
-<div class="sidebarblock">
-<div class="content">
-<div class="title">この章の役割についてもう少し</div>
-<div class="paragraph">
-<p>この章で検討したいことは、ボウリングのスコアに関してどのようなモデルを作るのか、という話題から少し離れています。
-モデルをどのように実装するのかということは、モデルの表し方とコードの表し方の間の関係を定めるものであって、ボウリングのスコアをどのようなモデルとして表すかということとは独立している話題だからです。</p>
-</div>
-<div class="paragraph">
-<p>もし、この章の役割がピンとこないとか、実装についての議論にはあまり関心がないのであれば、最初はこの章を読み飛ばしてみてもかまいません。
-後の章へ進むと、実装する人がモデルを使う際には、モデルとコードを対応づける必要があり、事前に実装方式を決めておかなければ、実装者が実装方法について考える必要があることに気づくでしょう。
-そのときは、この章に戻って、どうして実装方式の設計が必要なのか考えてもらえたらと思います。</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -158,7 +166,7 @@
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/note.png" alt="注記">
+<div class="title">注記</div>
 </td>
 <td class="content">
 同じモデルからRubyで実装するチュートリアルもあります。
@@ -188,6 +196,37 @@
 </div>
 </div>
 <div class="sect4">
+<h5 id="stm_sample_project_setting"><a class="anchor" href="#stm_sample_project_setting"></a>プロジェクトの設定</h5>
+<div class="paragraph">
+<p>実装にC言語を使うので、プロジェクトで使う言語情報を「cxx」に変更しておきます。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>構造ツリーで、プロジェクト名をクリックして選択する。</p>
+</li>
+<li>
+<p>プロパティーから「プロジェクトの設定」タブを開く。</p>
+</li>
+<li>
+<p>プログラミング言語のチェックボックスから「cxx」をチエックする。</p>
+</li>
+<li>
+<p>確認ダイアログ「プロジェクトに言語情報を適用しますか？」で「はい」をクリックする。</p>
+</li>
+<li>
+<p>「Java」「C＃」など他の言語の項目のチェックは外しておく。</p>
+</li>
+</ul>
+</div>
+<div id="stm_sample_project_setting00" class="imageblock">
+<div class="content">
+<img src="images/project_setting_for_c.png" alt="project setting for c" width="25%">
+</div>
+<div class="title">図 3.1 プロジェクトの設定で言語情報を設定する</div>
+</div>
+</div>
+<div class="sect4">
 <h5 id="add_stm_sample_class_diag"><a class="anchor" href="#add_stm_sample_class_diag"></a>検討用プロジェクトにクラス図を追加する</h5>
 <div class="paragraph">
 <p>プロジェクトが保存できたら、プロジェクトにクラス図を追加しましょう。</p>
@@ -209,11 +248,20 @@
 <div class="content">
 <img src="images/GSW-20220213-005309.png" alt="GSW 20220213 005309" width="50%">
 </div>
-<div class="title">図 3.1 対応づけの説明に使うプロジェクトにクラス図を追加した</div>
+<div class="title">図 3.2 対応づけの説明に使うプロジェクトにクラス図を追加した</div>
+</div>
+<div style="page-break-after: always;"></div>
 </div>
 </div>
-<div class="sect4">
-<h5 id="add_sample_class00"><a class="anchor" href="#add_sample_class00"></a>クラス図に「Sample」クラスを追加する</h5>
+</div>
+<div class="sect2">
+<h3 id="_構造のモデルとコードを対応づける1"><a class="anchor" href="#_構造のモデルとコードを対応づける1"></a>3.3. 構造のモデルとコードを対応づける（1）</h3>
+<div class="paragraph">
+<p>手始めに、UMLのクラスとC言語の構造体を対応づけてみましょう。
+いきなり細かいことまですべて取り扱うのは大変なので、基本的な構成要素だけ対応づけてみます。</p>
+</div>
+<div class="sect3">
+<h4 id="add_sample_class00"><a class="anchor" href="#add_sample_class00"></a>3.3.1. クラス図に「Sample」クラスを追加する</h4>
 <div class="paragraph">
 <p>対応づけの説明用に、簡単なクラス「Sample」の定義から始めましょう。
 このクラスは、操作「Play」と属性「attr_a」「attr_b」を持つクラスとします。
@@ -225,7 +273,7 @@
 <p>パレットからクラスを選択し、クラス図に追加する。</p>
 </li>
 <li>
-<p>クラス名を「Sample」にする（ <a href="_model_to_code_design.html#sample_class01">図 3.2</a> ）。</p>
+<p>クラス名を「Sample」にする（ <a href="_model_to_code_design.html#sample_class01">図 3.3</a> ）。</p>
 </li>
 <li>
 <p>クラスに操作「play」を追加する。</p>
@@ -239,64 +287,40 @@
 <div class="content">
 <img src="images/GSW-20220212-220754.png" alt="GSW 20220212 220754" width="75%">
 </div>
-<div class="title">図 3.2 クラス図に「Sample」クラスを追加した</div>
+<div class="title">図 3.3 クラス図に「Sample」クラスを追加した</div>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_sampleクラスの最初のサンプルコード"><a class="anchor" href="#_sampleクラスの最初のサンプルコード"></a>Sampleクラスの最初のサンプルコード</h5>
+<div class="sect3">
+<h4 id="_sampleクラスの最初の対応づけ"><a class="anchor" href="#_sampleクラスの最初の対応づけ"></a>3.3.2. Sampleクラスの最初の対応づけ</h4>
 <div class="paragraph">
-<p>対応づけルールの1つ目として、 <a href="_model_to_code_design.html#sample_class01">図 3.2</a> を表したCのヘッダファイルと実装ファイル（ `.c`ファイル）のセットで書きたいと決めることにします。</p>
+<p>対応づけルールの1つ目として、次のように書きたいと決めることにします。
+操作や属性は公開範囲（スコープ）を設定できますが、ここでは演習の簡単のために、属性はプライベート、操作はパブリックということにします。</p>
 </div>
-<div class="paragraph">
-<p>まず、ヘッダファイル <code>sample.h</code> については、<a href="_model_to_code_design.html#c_sample01_h">リスト 3.1</a> のように対応づけます。</p>
-</div>
-<div id="c_sample01_h" class="listingblock">
-<div class="title">リスト 3.1 <code>sample.h</code>: 「Sample」クラスを表すCのヘッダファイル</div>
-<div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">#ifndef SAMPLE_H
-#define SAMPLE_H
-
-#include &lt;stdio.h&gt;
-#include &lt;stdbool.h&gt;
-
-typedef struct {  <img src="images/icons/callouts/1.png" alt="1">
-    bool attr_a;  <img src="images/icons/callouts/2.png" alt="2">
-    bool attr_b;  <img src="images/icons/callouts/2.png" alt="2">
-    /* 状態変数は後で追加 */
-} Sample;
-
-/* メソッドにあたる関数のプロトタイプ宣言 */
-void sample_init(Sample *sample);  <img src="images/icons/callouts/3.png" alt="3">
-void sample_play(Sample *sample);  <img src="images/icons/callouts/4.png" alt="4">
-
-#endif /* SAMPLE_H */</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>構造体「Sample」の定義（UMLのクラスに対応）</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>このクラスのメンバー変数（UMLの属性に対応）</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>初期化関数（コンストラクタに相当する関数）</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>メソッド「play」に対応する関数</td>
-</tr>
-</table>
+<div class="ulist">
+<div class="title">UMLのクラスとC言語のクラスの対応づけ（1）</div>
+<ul>
+<li>
+<p>UMLのクラス名を、C言語の <code>typedef</code> で構造体型として定義する。</p>
+</li>
+<li>
+<p>UMLのクラスの属性を、クラスを割り当てた構造体の中のメンバ変数とする。</p>
+</li>
+<li>
+<p>UMLのクラスの操作を、最初の引数がクラスを割り当てた構造体型へのポインタになっている関数とする。</p>
+</li>
+<li>
+<p>クラスのインスタンスを作成するための初期化関数（コンストラクタ）として <code>init</code> の付く関数を用意する。</p>
+</li>
+</ul>
 </div>
 <div class="sidebarblock">
 <div class="content">
 <div class="title">C言語でのクラスの表現</div>
 <div class="paragraph">
 <p>C言語はオブジェクト指向言語ではありませんが、構造体(<code>struct</code>)を使ってクラスの概念を表現できます。</p>
+</div>
+<div class="paragraph">
+<p>このチュートリアルが採用した実装方式では、次のような対応づけになっています。</p>
 </div>
 <div class="ulist">
 <ul>
@@ -317,49 +341,124 @@ void sample_play(Sample *sample);  <img src="images/icons/callouts/4.png" alt="4
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>たとえば、シングルインスタンス・モジュール（ <a href="_model_to_code_design.html#column_impl_module">コラム 2</a> で紹介）では、次のような対応づけを使うこともできます。</p>
 </div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>クラス</strong> → ファイルセット（クラス名のわかる <code>.c</code> と <code>.h</code> ）</p>
+</li>
+<li>
+<p><strong>属性</strong> → そのファイルの static なグローバル変数</p>
+</li>
+<li>
+<p><strong>メソッド</strong> → そのファイルで定義している関数</p>
+<div class="ulist">
+<ul>
+<li>
+<p>クラス名のわかるプレフィックスをつける</p>
+</li>
+<li>
+<p>パブリックなメソッドは、ヘッダーファイルに関数のプロトタイプ宣言を追加</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>コンストラクタ</strong> → <code>クラス名_init()</code> 関数を定義</p>
+</li>
+<li>
+<p><strong>カプセル化</strong> → staticなグローバル変数、パブリックなプロトタイプ宣言の活用</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_sampleクラスの最初のサンプルコード"><a class="anchor" href="#_sampleクラスの最初のサンプルコード"></a>3.3.3. Sampleクラスの最初のサンプルコード</h4>
+<div class="paragraph">
+<p>対応づけルールの1つ目として、 <a href="_model_to_code_design.html#sample_class01">図 3.3</a> を表したCのヘッダーファイル（ <code>.h</code> ファイル）と実装ファイル（ <code>.c</code> ファイル）のセットで書きたいと決めることにします。</p>
 </div>
 <div class="paragraph">
-<p>そして、実装ファイル`sample.c`は <a href="_model_to_code_design.html#c_sample01_c">リスト 3.2</a> のようになります。</p>
+<p>まず、ヘッダーファイル <code>sample.h</code> については、<a href="_model_to_code_design.html#c_sample01_h">リスト 3.1</a> のように対応づけます。</p>
+</div>
+<div id="c_sample01_h" class="listingblock">
+<div class="title">リスト 3.1 <code>sample.h</code>: 「Sample」クラスを表すC言語のヘッダーファイル</div>
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="c">#ifndef SAMPLE_H
+#define SAMPLE_H
+
+#include &lt;stdio.h&gt;
+#include &lt;stdbool.h&gt;
+
+typedef struct {  // <b class="conum">(1)</b>
+    bool attr_a;  // <b class="conum">(2)</b>
+    bool attr_b;  // <b class="conum">(2)</b>
+    /* 状態変数は後で追加 */
+} Sample;
+
+/* メソッドにあたる関数のプロトタイプ宣言 */
+void sample_init(Sample *sample);  // <b class="conum">(3)</b>
+void sample_play(Sample *sample);  // <b class="conum">(4)</b>
+
+#endif /* SAMPLE_H */</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>構造体「Sample」の定義（UMLのクラスに対応）。</p>
+</li>
+<li>
+<p>このクラスのメンバー変数（UMLの属性に対応）。</p>
+</li>
+<li>
+<p>初期化関数（コンストラクタに相当する関数）。</p>
+</li>
+<li>
+<p>操作「play」に対応する関数。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>そして、実装ファイル <code>sample.c</code> は <a href="_model_to_code_design.html#c_sample01_c">リスト 3.2</a> のようになります。</p>
 </div>
 <div id="c_sample01_c" class="listingblock">
 <div class="title">リスト 3.2 <code>sample.c</code>: 「Sample」クラスの実装（.cファイル）</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">#include "sample.h" <img src="images/icons/callouts/1.png" alt="1">
+<pre class="prettyprint highlight"><code data-lang="c">#include "sample.h" // <b class="conum">(1)</b>
 
 /* Sample構造体の初期化（インスタンスの作成） */
-void sample_init(Sample *sample) {  <img src="images/icons/callouts/2.png" alt="2">
-    sample-&gt;attr_a = true;  <img src="images/icons/callouts/3.png" alt="3">
-    sample-&gt;attr_b = true;  <img src="images/icons/callouts/3.png" alt="3">
+void sample_init(Sample *sample) {  // <b class="conum">(2)</b>
+    sample-&gt;attr_a = true;  // <b class="conum">(3)</b>
+    sample-&gt;attr_b = true;  // <b class="conum">(3)</b>
     /* 状態の初期化は後で追加 */
 }
 
 /* playメソッドの実装 */
-void sample_play(Sample *sample) {  <img src="images/icons/callouts/4.png" alt="4">
+void sample_play(Sample *sample) {  // <b class="conum">(4)</b>
     /* 振る舞いは後で実装 */
     printf("play called attr_a:%d\n", sample-&gt;attr_a);
 }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>実装するクラスのヘッダファイルのインクルード</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>初期化関数の実装</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>メンバー変数の初期化</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>playメソッドの実装</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>実装するクラスのヘッダーファイルのインクルード。</p>
+</li>
+<li>
+<p>初期化関数の実装。</p>
+</li>
+<li>
+<p>メンバー変数の初期化。</p>
+</li>
+<li>
+<p>playメソッドの実装。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>Sampleクラスを利用する場合には、Sampleクラスのインスタンスを作り、その操作（メソッド）を呼び出します（ <a href="_model_to_code_design.html#c_sample01_main">リスト 3.3</a> ）。</p>
@@ -367,43 +466,39 @@ void sample_play(Sample *sample) {  <img src="images/icons/callouts/4.png" alt="
 <div id="c_sample01_main" class="listingblock">
 <div class="title">リスト 3.3 Sampleクラスを使うコード例</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">#include "sample.h" <img src="images/icons/callouts/1.png" alt="1">
+<pre class="prettyprint highlight"><code data-lang="c">#include "sample.h" // <b class="conum">(1)</b>
 
 int main(void) {
-    Sample smpl01;               <img src="images/icons/callouts/2.png" alt="2">
-    sample_init(&amp;smpl01);        <img src="images/icons/callouts/3.png" alt="3">
-    sample_play(&amp;smpl01);        <img src="images/icons/callouts/4.png" alt="4">
+    Sample smpl01;               // <b class="conum">(2)</b>
+    sample_init(&amp;smpl01);        // <b class="conum">(3)</b>
+    sample_play(&amp;smpl01);        // <b class="conum">(4)</b>
 }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>使用するクラスのヘッダファイルのインクルード</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>Sampleクラスのインスタンスに使う変数 <code>smpl01</code> を定義</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td><code>smpl01</code> の初期化</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td><code>smpl01</code> のメソッド <code>play</code> の呼び出し</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>使用するクラスのヘッダーファイルのインクルード。</p>
+</li>
+<li>
+<p>Sampleクラスのインスタンスに使う変数 <code>smpl01</code> を定義。</p>
+</li>
+<li>
+<p><code>smpl01</code> の初期化。</p>
+</li>
+<li>
+<p><code>smpl01</code> のメソッド <code>play</code> の呼び出し。</p>
+</li>
+</ol>
 </div>
 <div class="admonitionblock tip">
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/tip.png" alt="ヒント">
+<div class="title">ヒント</div>
 </td>
 <td class="content">
-インスタンスに使う変数は、より一般的には <code>malloc</code> などで動的に確保する方法が使われます。この場合、メソッドとなる関数には確保した領域のポインタを渡すことや、使用後に <code>free</code> を使って領域を開放することを忘れないように注意します。
+インスタンスに使う変数は、より一般的には <code>malloc</code> などで動的に確保する方法が使われます。この場合、メソッドとなる関数には確保した領域のポインタを渡すことや、使用後に <code>free</code> を使って領域を開放することに注意します。
 </td>
 </tr>
 </table>
@@ -412,7 +507,7 @@ int main(void) {
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/note.png" alt="注記">
+<div class="title">注記</div>
 </td>
 <td class="content">
 この段階のサンプルコードは、 <code>codes/sample01</code> ディレクトリに用意してあります。
@@ -420,7 +515,7 @@ int main(void) {
 </tr>
 </table>
 </div>
-<div class="sidebarblock">
+<div id="column_impl_module" class="sidebarblock">
 <div class="content">
 <div class="title">実装方式の策定も設計の一部</div>
 <div class="paragraph">
@@ -459,8 +554,8 @@ int main(void) {
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_クラスにステートマシン図を追加する"><a class="anchor" href="#_クラスにステートマシン図を追加する"></a>3.2.2. クラスにステートマシン図を追加する</h4>
+<div class="sect2">
+<h3 id="_振る舞いのモデルを作成する"><a class="anchor" href="#_振る舞いのモデルを作成する"></a>3.4. 振る舞いのモデルを作成する</h3>
 <div class="paragraph">
 <p>このサンプルにおいては、いま追加した操作「play」が、「Sample」クラスの振る舞いを提供しているとします。
 しかし、クラス図に描いた「Sample」クラスに操作「play」を追加しただけでは、その処理内容はわかりません。
@@ -470,8 +565,8 @@ int main(void) {
 <p>そこで、「Sample」クラスに対して、操作「play」の振る舞いを表すステートマシン図を追加します。
 ここで、図を追加する対象を「Sample」クラスにしているのは、このステートマシン図が「Sample」クラスの振る舞いのモデル図であるとわかるようにするためです。</p>
 </div>
-<div class="sect4">
-<h5 id="add_stm_sample01"><a class="anchor" href="#add_stm_sample01"></a>クラスにステートマシン図を追加する</h5>
+<div class="sect3">
+<h4 id="add_stm_sample01"><a class="anchor" href="#add_stm_sample01"></a>3.4.1. クラスにステートマシン図を追加する</h4>
 <div class="paragraph">
 <p>「Sample」クラスにステートマシン図を追加します。</p>
 </div>
@@ -481,7 +576,7 @@ int main(void) {
 <p>構造ツリーから「Sample」クラスを選択する。</p>
 </li>
 <li>
-<p>右クリックしてポップアップメニューを表示する（ <a href="_model_to_code_design.html#add_stm_sample02">図 3.3</a> ）。</p>
+<p>右クリックしてポップアップメニューを表示する（ <a href="_model_to_code_design.html#add_stm_sample02">図 3.4</a> ）。</p>
 </li>
 <li>
 <p>「図の追加＞ステートマシン図」を選択すると、ステートマシン図が追加される。</p>
@@ -492,12 +587,12 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-020944.png" alt="GSW 20220213 020944" width="75%">
 </div>
-<div class="title">図 3.3 「Sample」クラスにステートマシン図を追加する</div>
+<div class="title">図 3.4 「Sample」クラスにステートマシン図を追加する</div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>プロパティーから図の名前を編集し、「Sampleのplayのステートマシン図」とする（ <a href="_model_to_code_design.html#add_stm_sample03">図 3.4</a> ）。</p>
+<p>プロパティーから図の名前を編集し、「Sampleのplayのステートマシン図」とする（ <a href="_model_to_code_design.html#add_stm_sample03">図 3.5</a> ）。</p>
 </li>
 <li>
 <p>ダイアグラムエディタのタイトルやタブにも図の名前が反映される。</p>
@@ -508,11 +603,29 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-013034.png" alt="GSW 20220213 013034" width="75%">
 </div>
-<div class="title">図 3.4 追加したステートマシン図に名前をつける</div>
+<div class="title">図 3.5 追加したステートマシン図に名前をつける</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">ヒント</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><a href="_model_to_code_design.html#add_stm_sample02">図 3.4</a> では、Sampleクラスの振る舞いを表すステートマシン図とわかるようにと考えて、クラスに対してステートマシン図を割り当てました。
+この他、 astah* では、メソッドに対してステートマシン図を割り当てることもできます。
+任意のメソッドの処理を示すステートマシン図の割当てとしては、後者のほうが好ましいでしょう。
+ここでは、クラスの振る舞いということを意識して、クラス図に割当ててみています。
+どちらの方法を使うにしても、クラスの振る舞いを担当するメソッドを対応づけすることは必要になるでしょう。</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">【参考】ステートマシン図を学ぶチュートリアル</div>
+<div class="title">ステートマシン図を学ぶチュートリアル【参考】</div>
 <div class="paragraph">
 <p>ここでは、モデルとコードの対応づけを説明するために、振る舞いのモデルの一種であるステートマシン図を作成しています。
 ステートマシン図を使って振る舞いを設計する方法については、次のチュートリアルも参考にしてみてください。</p>
@@ -527,28 +640,9 @@ int main(void) {
 </div>
 </div>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<img src="images/icons/tip.png" alt="ヒント">
-</td>
-<td class="content">
-<div class="paragraph">
-<p><a href="_model_to_code_design.html#add_stm_sample02">図 3.3</a> では、Sampleクラスの振る舞いを表すステートマシン図とわかるようにと考えて、クラスに対してステートマシン図を割り当てました。
-この他、 astah* では、メソッドに対してステートマシン図を割り当てることもできます。
-任意のメソッドの処理を示すステートマシン図の割当てとしては、後者のほうが好ましいでしょう。
-ここでは、クラスの振る舞いということを意識して、クラス図に割当ててみています。
-どちらの方法を使うにしても、クラスの振る舞いを担当するメソッドを対応づけすることは必要になるでしょう。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
 </div>
 <div class="sect3">
-<h4 id="_ステートマシン図に状態を追加する"><a class="anchor" href="#_ステートマシン図に状態を追加する"></a>3.2.3. ステートマシン図に状態を追加する</h4>
+<h4 id="_ステートマシン図に状態を追加する"><a class="anchor" href="#_ステートマシン図に状態を追加する"></a>3.4.2. ステートマシン図に状態を追加する</h4>
 <div class="paragraph">
 <p>次に、追加したステートマシン図に、状態を追加します。</p>
 </div>
@@ -560,7 +654,7 @@ int main(void) {
 <div class="ulist">
 <ul>
 <li>
-<p>追加した状態の状態名は「状態0」（数字は追加の都度変わる）となっている（ <a href="_model_to_code_design.html#add_stm_sample04">図 3.5</a> ）。</p>
+<p>追加した状態の状態名は「状態0」（数字は追加の都度変わる）となっている（ <a href="_model_to_code_design.html#add_stm_sample04">図 3.6</a> ）。</p>
 </li>
 </ul>
 </div>
@@ -571,12 +665,12 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-093229.png" alt="GSW 20220213 093229" width="75%">
 </div>
-<div class="title">図 3.5 新しい状態を追加した</div>
+<div class="title">図 3.6 新しい状態を追加した</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="2">
 <li>
-<p>「状態0」を選択し、プロパティーの「ベース」タブの「名前」を編集して、状態の名前を「ST0」にする（ <a href="_model_to_code_design.html#add_stm_sample05">図 3.6</a> ）。</p>
+<p>「状態0」を選択し、プロパティーの「ベース」タブの「名前」を編集して、状態の名前を「ST0」にする（ <a href="_model_to_code_design.html#add_stm_sample05">図 3.7</a> ）。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -591,12 +685,12 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-104448.png" alt="GSW 20220213 104448" width="75%">
 </div>
-<div class="title">図 3.6 新しい状態に状態名をつけた</div>
+<div class="title">図 3.7 新しい状態に状態名をつけた</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
 <li>
-<p>このサンプルでは3つの状態を使いたいので、状態をもう2つ追加する（ <a href="_model_to_code_design.html#add_stm_sample06">図 3.7</a> ）。</p>
+<p>このサンプルでは3つの状態を使いたいので、状態をもう2つ追加する（ <a href="_model_to_code_design.html#add_stm_sample06">図 3.8</a> ）。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -611,12 +705,12 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-111820.png" alt="GSW 20220213 111820" width="75%">
 </div>
-<div class="title">図 3.7 新しい状態に状態名をつけた</div>
+<div class="title">図 3.8 新しい状態に状態名をつけた</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
 <li>
-<p>開始疑似状態、終了疑似状態を追加した（ <a href="_model_to_code_design.html#add_stm_sample07">図 3.8</a> ）。</p>
+<p>開始疑似状態、終了疑似状態を追加した（ <a href="_model_to_code_design.html#add_stm_sample07">図 3.9</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -624,11 +718,26 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220213-112341.png" alt="GSW 20220213 112341" width="75%">
 </div>
-<div class="title">図 3.8 開始疑似状態、終了疑似状態を追加した</div>
+<div class="title">図 3.9 開始疑似状態、終了疑似状態を追加した</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">注記</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>「開始疑似状態」は、それ自体は状態ではありません。開始疑似状態から遷移する先の状態がその図の中の最初の状態ということを示すラベルと考えるとよいでしょう。
+「終了疑似状態」も、終了疑似状態へ遷移する状態が最後の状態（のひとつ）ということを示すラベルと考えるとよいでしょう。</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_ステートマシン図に状態遷移を追加する"><a class="anchor" href="#_ステートマシン図に状態遷移を追加する"></a>3.2.4. ステートマシン図に状態遷移を追加する</h4>
+<h4 id="_ステートマシン図に状態遷移を追加する"><a class="anchor" href="#_ステートマシン図に状態遷移を追加する"></a>3.4.3. ステートマシン図に状態遷移を追加する</h4>
 <div class="paragraph">
 <p>状態が追加できたので、こんどは状態遷移を追加しましょう。
 ステートマシン図には、通常の状態のほかにいくつかの「疑似状態」が登場します。
@@ -639,7 +748,7 @@ int main(void) {
 <div class="title">状態遷移を追加する</div>
 <ol class="arabic">
 <li>
-<p>パレットから「遷移」を選択して、「開始疑似状態」の内部へマウスカーソルを移動し、青枠が表示されるのを待つ（ <a href="_model_to_code_design.html#add_stm_trans01">図 3.9</a> ）。</p>
+<p>パレットから「遷移」を選択して、「開始疑似状態」の内部へマウスカーソルを移動し、青枠が表示されるのを待つ（ <a href="_model_to_code_design.html#add_stm_trans01">図 3.10</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -647,7 +756,7 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_transition_58.png" alt="add stm transition 58" width="75%">
 </div>
-<div class="title">図 3.9 開始疑似状態の内側で青枠を表示させる</div>
+<div class="title">図 3.10 開始疑似状態の内側で青枠を表示させる</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="2">
@@ -655,7 +764,7 @@ int main(void) {
 <p>青枠が表示されたらマウスカーソルをドラッグする（マウスのボタンを押したままマウスカーソルを移動する）。</p>
 </li>
 <li>
-<p>マウスカーソルを「ST0」へドラッグして青枠が表示されるのを待つ（ <a href="_model_to_code_design.html#add_stm_trans02">図 3.10</a> ）。</p>
+<p>マウスカーソルを「ST0」へドラッグして青枠が表示されるのを待つ（ <a href="_model_to_code_design.html#add_stm_trans02">図 3.11</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -663,12 +772,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_transition_73.png" alt="add stm transition 73" width="75%">
 </div>
-<div class="title">図 3.10 「ST0」へマウスカーソルをドラッグして青枠が表示されるのを待つ</div>
+<div class="title">図 3.11 「ST0」へマウスカーソルをドラッグして青枠が表示されるのを待つ</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p>「ST0」でも青枠が表示されたらマウスのボタンを離すと状態遷移が引かれる（ <a href="_model_to_code_design.html#add_stm_trans03">図 3.11</a> ）。</p>
+<p>「ST0」でも青枠が表示されたらマウスのボタンを離すと状態遷移が引かれる（ <a href="_model_to_code_design.html#add_stm_trans03">図 3.12</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -676,12 +785,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_transition_81.png" alt="add stm transition 81" width="75%">
 </div>
-<div class="title">図 3.11 「ST0」でも青枠が表示されたらマウスのボタンを離すと状態遷移が引かれる</div>
+<div class="title">図 3.12 「ST0」でも青枠が表示されたらマウスのボタンを離すと状態遷移が引かれる</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p>ほかの状態についても <a href="_model_to_code_design.html#add_stm_trans04">図 3.12</a> と同じように状態遷移を追加する。</p>
+<p>ほかの状態についても <a href="_model_to_code_design.html#add_stm_trans04">図 3.13</a> と同じように状態遷移を追加する。</p>
 </li>
 </ol>
 </div>
@@ -689,11 +798,14 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_transition_215.png" alt="add stm transition 215" width="75%">
 </div>
-<div class="title">図 3.12 ほかの状態遷移も追加する</div>
+<div class="title">図 3.13 ほかの状態遷移も追加する</div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_状態とイベントと状態遷移の関係"><a class="anchor" href="#_状態とイベントと状態遷移の関係"></a>3.2.5. 状態とイベントと状態遷移の関係</h4>
+<h4 id="_状態イベント状態遷移アクション"><a class="anchor" href="#_状態イベント状態遷移アクション"></a>3.4.4. 状態・イベント・状態遷移・アクション</h4>
+<div class="paragraph">
+<p>ステートマシン図で処理を表す時に登場する要素について、簡単に整理しておきましょう。</p>
+</div>
 <div class="sect4">
 <h5 id="_状態とイベント"><a class="anchor" href="#_状態とイベント"></a>状態とイベント</h5>
 <div class="paragraph">
@@ -705,34 +817,74 @@ int main(void) {
 <div class="sect4">
 <h5 id="_状態遷移"><a class="anchor" href="#_状態遷移"></a>状態遷移</h5>
 <div class="paragraph">
-<p>状態遷移は、ある状態において待っていたイベントが発生して、別の状態へ移ることを表しています。
-イベントには、イベントが発生したとき、実際に遷移するか判定する条件を追加できます。
-この条件のことを「ガード条件」と呼びます。
-ガード条件つきのイベントでは、イベントが発生したときにガード条件を評価し、条件が真なら状態遷移します。
-ガード条件が偽のとき、イベントは起きたことになります（消費されると呼びます）が、状態は遷移しません。</p>
+<p>状態遷移は、ある状態において待っていたイベントが発生して、別の状態へ移ることを表します。
+遷移先が2つ以上ある状態では、各々の状態遷移で待っているイベントは異なっている必要があります。
+それは、同じイベントで別の状態へ遷移する状態遷移が複数あると、どちらへ遷移すべきかをイベントの違いだけでは判定できなくなるからです。そのような状態遷移を「あいまいな状態遷移」と呼びます。
+「選択疑似状態」を使うと、イベントの発生時に状況によって遷移先を振り分けることもできます。</p>
 </div>
 <div class="paragraph">
-<p>そして、状態遷移には、イベントが発生したときに実行したい処理を追加できます。
+<p>状態遷移には、イベントが発生したとき、実際に状態を遷移するか判定する条件を追加できます。
+この条件のことを「ガード条件」と呼びます。
+ガード条件がある状態遷移では、イベントが発生したときにガード条件を評価します。
+ガード条件の評価が真のときは、状態が遷移します。
+ガード条件の評価が偽のときは、状態は遷移しませんが、その場合もイベントは起きたとことになります（「イベントが消費された」といいます）。</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_アクション"><a class="anchor" href="#_アクション"></a>アクション</h5>
+<div class="paragraph">
+<p>状態や状態遷移には、イベントが発生したときに実行したい処理を割り当てられます。
 この処理のことを「アクション（またはエフェクト）」と呼びます。</p>
 </div>
 <div class="paragraph">
-<p>イベントが発生すると、ガード条件つきのイベントならさらにガード条件も真なら、状態遷移に伴うアクションが実行され、それから次の状態へ遷移します。</p>
+<p>状態遷移に割り当てられたアクションの場合、イベントが発生すると状態遷移に伴うアクションが実行されます。
+状態が遷移するのは、アクションの実行が完了してからです。
+ガード条件つきの状態遷移の場合は、イベントの発生後さらにガード条件も真なら、アクションが実行され、次の状態へ遷移します。</p>
+</div>
+<div class="paragraph">
+<p>状態にアクションを割り当てる場合、次の3つの内部処理を記載できます。</p>
+</div>
+<div class="dlist">
+<div class="title">状態内のアクション（内部動作）の種類</div>
+<dl>
+<dt class="hdlist1">entry / 入場時アクション</dt>
+<dd>
+<p>その状態に入った直後に一度だけ実行される処理。</p>
+</dd>
+<dt class="hdlist1">do / Doアクティビティ</dt>
+<dd>
+<p>状態に滞在している間、継続的に（または繰り返し）実行される処理。</p>
+</dd>
+<dt class="hdlist1">exit / 退場時アクション</dt>
+<dd>
+<p>イベントが発生してその状態から遷移して抜けるとき、その直前に実行される処理。</p>
+</dd>
+</dl>
+</div>
+<div id="stm_actions_detail" class="imageblock">
+<div class="content">
+<img src="images/stm_actions_detail.png" alt="stm actions detail" width="50%">
+</div>
+<div class="title">図 3.14 アクションはイベントや状態に割り当てられる</div>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_ステートマシン図にイベントやアクションを追加する"><a class="anchor" href="#_ステートマシン図にイベントやアクションを追加する"></a>3.2.6. ステートマシン図にイベントやアクションを追加する</h4>
+<h4 id="_ステートマシン図にイベントやアクションを追加する"><a class="anchor" href="#_ステートマシン図にイベントやアクションを追加する"></a>3.4.5. ステートマシン図にイベントやアクションを追加する</h4>
+<div class="paragraph">
+<p>ここでは、イベントにアクションを割り当ててみましょう。</p>
+</div>
 <div class="paragraph">
 <p>まず、「ST0」から「ST1」への状態遷移を、イベントが「ev1」でガード条件は「gd（が真）」のとき、アクション「act1」を実行するよう編集してみましょう。</p>
 </div>
 <div id="add_evt_act00" class="olist arabic">
-<div class="title">状態遷移にイベントやアクションを追加する（１）</div>
+<div class="title">状態遷移にイベントやアクションを追加する（1）</div>
 <ol class="arabic">
 <li>
 <p>「ST0」から「ST1」への状態遷移を選択し、この遷移のプロパティーを表示し、ベースタブを開く。</p>
 </li>
 <li>
-<p>プロパティーを編集する（ <a href="_model_to_code_design.html#add_evt_act01">図 3.13</a> ）。</p>
+<p>プロパティーを編集する（ <a href="_model_to_code_design.html#add_evt_act01">図 3.15</a> ）。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -760,7 +912,7 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220215-071155.png" alt="GSW 20220215 071155" width="75%">
 </div>
-<div class="title">図 3.13 「ST0」から「ST1」への状態遷移のイベントとアクションを編集する</div>
+<div class="title">図 3.15 「ST0」から「ST1」への状態遷移のイベントとアクションを編集する</div>
 </div>
 <div class="paragraph">
 <p>次に、「ST1」からの「ST2」への遷移です。
@@ -769,14 +921,16 @@ int main(void) {
 </div>
 <div class="paragraph">
 <p>遷移先が2つあるなら、状態遷移を別々に引けばよさそうです。
-ところが、同じイベントを待ってる遷移先が2つ以上あると、どちらの状態へ遷移するのか決定できなくなります（あいまいな状態遷移と呼びます）。
-そこで、1つのイベントによる遷移先が状況によって変わる場合には「選択疑似状態」を使います。</p>
+ところが、同じイベントを待ってる遷移先が2つ以上あると、どちらの状態へ遷移するのか決定できなくなります（あいまいな状態遷移と呼びます）。</p>
+</div>
+<div class="paragraph">
+<p>そこで、1つのイベントによる遷移先が状況によって変わる場合には「選択疑似状態」を使います。</p>
 </div>
 <div id="add_evt_act02" class="olist arabic">
-<div class="title">状態遷移にイベントやアクションを追加する（２）</div>
+<div class="title">状態遷移にイベントやアクションを追加する（2）</div>
 <ol class="arabic">
 <li>
-<p>パレットから「選択疑似状態」を選択し、ステートマシン図に追加する（ <a href="_model_to_code_design.html#add_evt_act03">図 3.14</a> ）。</p>
+<p>パレットから「選択疑似状態」を選択し、ステートマシン図に追加する（ <a href="_model_to_code_design.html#add_evt_act03">図 3.16</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -784,12 +938,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_trans45.png" alt="add stm trans45" width="75%">
 </div>
-<div class="title">図 3.14 「選択疑似状態」をステートマシン図に追加する</div>
+<div class="title">図 3.16 「選択疑似状態」をステートマシン図に追加する</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="2">
 <li>
-<p>「ST1」から「ST2」への状態遷移を選択し、「ST2」側のハンドル（丸印）をマウスでつまみ、「選択疑似状態」へつなぎ直す（ <a href="_model_to_code_design.html#add_evt_act04">図 3.15</a> ）。</p>
+<p>「ST1」から「ST2」への状態遷移を選択し、「ST2」側のハンドル（丸印）をマウスでつまみ、「選択疑似状態」へつなぎ直す（ <a href="_model_to_code_design.html#add_evt_act04">図 3.17</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -797,12 +951,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_trans120.png" alt="add stm trans120" width="75%">
 </div>
-<div class="title">図 3.15 既存の状態遷移を追加した「選択疑似状態」へつなぎ直す</div>
+<div class="title">図 3.17 既存の状態遷移を追加した「選択疑似状態」へつなぎ直す</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="3">
 <li>
-<p>「選択疑似状態」から「ST0」と「ST2」への状態遷移を追加する（ <a href="_model_to_code_design.html#add_evt_act05">図 3.16</a> ）。</p>
+<p>「選択疑似状態」から「ST0」と「ST2」への状態遷移を追加する（ <a href="_model_to_code_design.html#add_evt_act05">図 3.18</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -810,12 +964,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_trans218.png" alt="add stm trans218" width="75%">
 </div>
-<div class="title">図 3.16 「選択疑似状態」から「ST0」と「ST2」への状態遷移を追加する</div>
+<div class="title">図 3.18 「選択疑似状態」から「ST0」と「ST2」への状態遷移を追加する</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="4">
 <li>
-<p>それぞれの遷移のプロパティーを編集する（ <a href="_model_to_code_design.html#add_evt_act06">図 3.17</a> ）。</p>
+<p>それぞれの遷移のプロパティーを編集する（ <a href="_model_to_code_design.html#add_evt_act06">図 3.19</a> ）。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -836,12 +990,12 @@ int main(void) {
 <div class="content">
 <img src="images/add_stm_trans589.png" alt="add stm trans589" width="75%">
 </div>
-<div class="title">図 3.17 状態遷移のイベントとアクションを編集する</div>
+<div class="title">図 3.19 状態遷移のイベントとアクションを編集する</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="5">
 <li>
-<p>同様にして、もう2つほど状態遷移を追加する（ <a href="_model_to_code_design.html#add_evt_act07">図 3.18</a> ）。</p>
+<p>同様にして、もう2つほど状態遷移を追加する（ <a href="_model_to_code_design.html#add_evt_act07">図 3.20</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -849,20 +1003,20 @@ int main(void) {
 <div class="content">
 <img src="images/GSW-20220216-045358.png" alt="GSW 20220216 045358" width="75%">
 </div>
-<div class="title">図 3.18 さらに状態遷移とイベントとアクションを追加した</div>
+<div class="title">図 3.20 さらに状態遷移とイベントとアクションを追加した</div>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_ステートマシン図に対応するコードを作成する"><a class="anchor" href="#_ステートマシン図に対応するコードを作成する"></a>3.3. ステートマシン図に対応するコードを作成する</h3>
+<h3 id="_振る舞いのモデルにコードを対応づける"><a class="anchor" href="#_振る舞いのモデルにコードを対応づける"></a>3.5. 振る舞いのモデルにコードを対応づける</h3>
 <div class="paragraph">
-<p>ステートマシン図ができたので、この図に合うようなC言語のコードを作成すルールを考えましょう。</p>
+<p>細かい説明の前に、このチュートリアルで使うC言語のコードとステートマシン図の要素の対応づけを図で表してみましょう（ <a href="_model_to_code_design.html#c_sample06">図 3.21</a> ）。</p>
 </div>
 <div class="admonitionblock note">
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/note.png" alt="注記">
+<div class="title">注記</div>
 </td>
 <td class="content">
 この段階のサンプルコードは、 <code>codes/sample02</code> ディレクトリに用意してあります。
@@ -870,8 +1024,65 @@ int main(void) {
 </tr>
 </table>
 </div>
+<div id="c_sample06" class="imageblock">
+<div class="content">
+<img src="images/c_sample05.png" alt="c sample05" width="100%">
+</div>
+<div class="title">図 3.21 C言語のコードとステートマシン図の対応関係（1）</div>
+</div>
+<div class="paragraph">
+<p><a href="_model_to_code_design.html#c_sample06">図 3.21</a> は、状態「ST0」のイベントとアクションを処理する <code>st0_proc</code> 関数とステートマシン図の関係を示しています。</p>
+</div>
+<div class="paragraph">
+<p><a href="_model_to_code_design.html#c_sample06">図 3.21</a> に示した対応関係は、次のようなルールとして説明できるでしょう。</p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="olist arabic">
+<div class="title">ガード条件のある状態遷移をC言語のコードで表すルール</div>
+<ol class="arabic">
+<li>
+<p>遷移元の状態ごとに場合分けする。</p>
+</li>
+<li>
+<p>状態の中で待っているイベントごとに場合分けする。</p>
+</li>
+<li>
+<p>イベントごとの処理の中でアクションと状態遷移を処理する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ガード条件なしのときは（アクションがあればそれを呼び出した後）、次の状態へ遷移する。</p>
+</li>
+<li>
+<p>ガード条件があるときは、ガード条件を評価する。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ガード条件が真のときは、アクションを実行して次の状態へ遷移する。</p>
+</li>
+<li>
+<p>ガード条件が偽のときは、アクションは実行されず、状態も遷移しない。</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ステートマシン図に対応するコードを作成する"><a class="anchor" href="#_ステートマシン図に対応するコードを作成する"></a>3.6. ステートマシン図に対応するコードを作成する</h3>
+<div class="paragraph">
+<p>ステートマシン図と対応づけのルールができたので、この図に合うようなC言語のコードを作成してみましょう。
+このコードの作成方法も、このチュートリアルで使う対応づけのルールになります。</p>
+</div>
 <div class="sect3">
-<h4 id="_状態の定義"><a class="anchor" href="#_状態の定義"></a>3.3.1. 状態の定義</h4>
+<h4 id="_状態を表す定数を追加する"><a class="anchor" href="#_状態を表す定数を追加する"></a>3.6.1. 状態を表す定数を追加する</h4>
 <div class="paragraph">
 <p>ステートマシン図の「状態」をC言語で表現するために、 <code>enum</code> （列挙型）を使いましょう（ <a href="_model_to_code_design.html#c_state_enum">リスト 3.4</a> ）。</p>
 </div>
@@ -881,120 +1092,143 @@ int main(void) {
 <pre class="prettyprint highlight linenums:1"><code data-lang="c">#ifndef SAMPLE_H
 #define SAMPLE_H
 
-#include &lt;stdio.h&gt;
 #include &lt;stdbool.h&gt;
 
 typedef enum {
-    ST0,  <img src="images/icons/callouts/1.png" alt="1">
+    ST0, // <b class="conum">(1)</b>
     ST1,
-    ST2
-} SampleState;  <img src="images/icons/callouts/2.png" alt="2"></code></pre>
+    ST2,
+    ST_INVALID
+} State; // <b class="conum">(2)</b>
+
+typedef struct {
+    State current;
+} SampleState; // <b class="conum">(3)</b>
+
+void  sample_state_init(SampleState *ss); // <b class="conum">(4)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>各状態を列挙型の値として定義</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>状態を表す型名</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>各状態を列挙型の値として定義。</p>
+</li>
+<li>
+<p>状態を表す型名。</p>
+</li>
+<li>
+<p>状態を保持する変数をメンバーに持つ構造体。</p>
+</li>
+<li>
+<p>状態を保持する構造体変数を初期化する関数。</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_イベントの定義"><a class="anchor" href="#_イベントの定義"></a>3.3.2. イベントの定義</h4>
+<h4 id="_イベントを表す定数を追加する"><a class="anchor" href="#_イベントを表す定数を追加する"></a>3.6.2. イベントを表す定数を追加する</h4>
 <div class="paragraph">
 <p>ステートマシン図の「イベント」も <code>enum</code> で定義します（ <a href="_model_to_code_design.html#c_event_enum">リスト 3.5</a> ）。</p>
 </div>
 <div id="c_event_enum" class="listingblock">
 <div class="title">リスト 3.5 <code>sample.h</code>: イベントの定義</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">typedef enum {
-    EV1,  <img src="images/icons/callouts/1.png" alt="1">
+<pre class="prettyprint highlight linenums:19"><code data-lang="c">typedef enum {
+    EV1, // <b class="conum">(1)</b>
     EV2,
-    EV3
-} SampleEvent;  <img src="images/icons/callouts/2.png" alt="2"></code></pre>
+    EV3,
+    EV_UNKNOWN
+} Event;  // <b class="conum">(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>各イベントを列挙型の値として定義</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>イベントを表す型名</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>各イベントを列挙型の値として定義。</p>
+</li>
+<li>
+<p>イベントを表す型名。</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_sample構造体に状態変数を追加する"><a class="anchor" href="#_sample構造体に状態変数を追加する"></a>3.3.3. Sample構造体に状態変数を追加する</h4>
+<h4 id="_sample構造体に状態変数を追加する"><a class="anchor" href="#_sample構造体に状態変数を追加する"></a>3.6.3. Sample構造体に状態変数を追加する</h4>
 <div class="paragraph">
 <p>Sample構造体に現在の状態を保持する変数を追加します（ <a href="_model_to_code_design.html#c_sample_with_state">リスト 3.6</a> ）。</p>
 </div>
 <div id="c_sample_with_state" class="listingblock">
 <div class="title">リスト 3.6 <code>sample.h</code>: 状態変数を持つSample構造体</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">typedef struct {
+<pre class="prettyprint highlight linenums:26"><code data-lang="c">typedef struct {
     bool attr_a;
     bool attr_b;
-    SampleState state;  <img src="images/icons/callouts/1.png" alt="1">
-} Sample;</code></pre>
+    SampleState state;
+} Sample;   // <b class="conum">(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>現在の状態を保持する変数</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>Sample構造体に現在の状態を保持する変数 <code>state</code> を追加した。</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_公開メソッドの宣言を追加する"><a class="anchor" href="#_公開メソッドの宣言を追加する"></a>3.3.4. 公開メソッドの宣言を追加する</h4>
+<h4 id="_公開メソッドの宣言を追加する"><a class="anchor" href="#_公開メソッドの宣言を追加する"></a>3.6.4. 公開メソッドの宣言を追加する</h4>
 <div class="paragraph">
-<p>Sampleクラスの操作を公開関数として定義するため、ヘッダファイルにプロトタイプ宣言を追加します（ <a href="_model_to_code_design.html#c_sample_public_prototype">リスト 3.7</a> ）。</p>
+<p>Sampleクラスの操作を公開関数として定義するため、ヘッダーファイルにプロトタイプ宣言を追加します（ <a href="_model_to_code_design.html#c_sample_public_prototype">リスト 3.7</a> ）。</p>
 </div>
 <div id="c_sample_public_prototype" class="listingblock">
 <div class="title">リスト 3.7 <code>sample.h</code>: 公開関数のプロトタイプ宣言</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">void sample_init(Sample *sample);
-void sample_play(Sample *sample, SampleEvent evt, int p01);</code></pre>
+<pre class="prettyprint highlight linenums:32"><code data-lang="c">void sample_init(Sample *s);
+void sample_play(Sample *s, Event evt, int p01); // <b class="conum">(1)</b></code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>イベントとイベントの引数を追加したので、<code>sample01</code> のときと宣言が変わっていることに注意。</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_インスタンス作成処理の実装"><a class="anchor" href="#_インスタンス作成処理の実装"></a>3.3.5. インスタンス作成処理の実装</h4>
+<h4 id="_インスタンス作成処理の実装"><a class="anchor" href="#_インスタンス作成処理の実装"></a>3.6.5. インスタンス作成処理の実装</h4>
 <div class="paragraph">
 <p>インスタンスの作成（実際には与えられたインスタンス用変数の初期化）の処理は、<code>sample_init</code> 関数として実装します（ <a href="_model_to_code_design.html#c_sample_init">リスト 3.8</a> ）。</p>
 </div>
 <div id="c_sample_init" class="listingblock">
 <div class="title">リスト 3.8 <code>sample.c</code>: インスタンス作成処理（「init」関数）の実装</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">void sample_init(Sample *sample) {
-    sample-&gt;attr_a = true;
-    sample-&gt;attr_b = true;
-    sample-&gt;state = ST0; <img src="images/icons/callouts/1.png" alt="1">
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">#include &lt;stdio.h&gt;
+#include "sample.h" // <b class="conum">(1)</b>
+
+void sample_init(Sample *s) {
+    s-&gt;state.current = ST0; // <b class="conum">(2)</b>
+    s-&gt;attr_a = true;
+    s-&gt;attr_b = true;
 }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>状態の初期値を「ST0」に設定する</td>
-</tr>
-</table>
+<ol>
+<li>
+<p><code>sample.h</code> のインクルード。</p>
+</li>
+<li>
+<p>状態の初期値を「ST0」に設定する。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>クラスを使う時に必要となるヘッダーファイルは、できるだけヘッダーファイルでインクルードしておくこととします。</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_状態遷移を担当するメソッドを作成する"><a class="anchor" href="#_状態遷移を担当するメソッドを作成する"></a>3.3.6. 状態遷移を担当するメソッドを作成する</h4>
+<h4 id="_状態遷移を担当する関数を作成する"><a class="anchor" href="#_状態遷移を担当する関数を作成する"></a>3.6.6. 状態遷移を担当する関数を作成する</h4>
 <div class="paragraph">
 <p>ステートマシン図に書いた状態遷移を担当する操作「play」をplayメソッドとして作成します（ <a href="_model_to_code_design.html#c_state_play">リスト 3.9</a> ）。
 ルールの検討用なので、途中には処理の確認用の表示処理を書いておきます。</p>
@@ -1002,62 +1236,125 @@ void sample_play(Sample *sample, SampleEvent evt, int p01);</code></pre>
 <div id="c_state_play" class="listingblock">
 <div class="title">リスト 3.9 <code>sample.c</code>: 「play」メソッドの実装</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">void sample_play(Sample *sample, SampleEvent evt, int param) {
-    switch (sample-&gt;state) {  <img src="images/icons/callouts/1.png" alt="1">
-        case ST0:  <img src="images/icons/callouts/2.png" alt="2">
-            st0_proc(sample, evt, param);  <img src="images/icons/callouts/3.png" alt="3">
-            break;
-        case ST1:
-            st1_proc(sample, evt, param);
-            break;
-        case ST2:
-            st2_proc(sample, evt, param);
-            break;
+<pre class="prettyprint highlight linenums:71"><code data-lang="c">void sample_play(Sample *s, Event evt, int p01) { // <b class="conum">(1)</b>
+    switch (s-&gt;state.current) {  // <b class="conum">(2)</b>
+    case ST0:  // <b class="conum">(3)</b>
+        st0_proc(s, evt, p01);  // <b class="conum">(4)</b>
+        break;
+    case ST1:
+        st1_proc(s, evt, p01);
+        break;
+    case ST2:
+        // none
+        break;
+    case ST_INVALID:
+        printf("invalid state: %d.\n", s-&gt;state.current);
+        break;
     }
 }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>現在の状態で場合分けする</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>状態「ST0」の場合</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>その状態での処理を行う関数を呼び出す</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>この関数の引数に、イベントとイベントの引数を追加したので、ヘッダファイルも修正します（ &lt;&lt;&gt;&gt; ）。</p>
+<ol>
+<li>
+<p>イベントとイベントの引数を追加したので、<code>sample01</code> のときと宣言が変わっていることに注意。</p>
+</li>
+<li>
+<p>現在の状態で場合分けする。</p>
+</li>
+<li>
+<p>状態「ST0」の場合。</p>
+</li>
+<li>
+<p>その状態の処理を行う関数を呼び出す。</p>
+</li>
+</ol>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_状態ごとの処理関数"><a class="anchor" href="#_状態ごとの処理関数"></a>3.3.7. 状態ごとの処理関数</h4>
+<h4 id="_ガード条件の判定用関数を作成する"><a class="anchor" href="#_ガード条件の判定用関数を作成する"></a>3.6.7. ガード条件の判定用関数を作成する</h4>
 <div class="paragraph">
-<p>各状態での処理は、イベントに応じて適切な処理を行います。</p>
+<p>このサンプルのステートマシン図には、状態遷移のガード条件として「gd1」「gd2」が登場します。
+これらをC言語の関数として作成します。
+サンプルとして、属性の値を使った演算を割り当てました（ <a href="_model_to_code_design.html#c_sample04">リスト 3.10</a> ）。</p>
 </div>
-<div id="c_st0_proc" class="listingblock">
-<div class="title">リスト 3.10 <code>sample.c</code>: 状態「ST0」での処理</div>
+<div id="c_sample04" class="listingblock">
+<div class="title">リスト 3.10 <code>sample.c</code>: ガード条件のメソッドを作成する</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="c">static void st0_proc(Sample *sample, SampleEvent evt, int param) {
-    switch (evt) {  <img src="images/icons/callouts/1.png" alt="1">
-        case EV1:  <img src="images/icons/callouts/2.png" alt="2">
-            if (gd1(sample)) {  <img src="images/icons/callouts/3.png" alt="3">
-                act1(sample, evt, param);  <img src="images/icons/callouts/4.png" alt="4">
-                sample-&gt;state = ST1;  <img src="images/icons/callouts/5.png" alt="5">
+<pre class="prettyprint highlight linenums:10"><code data-lang="c">static bool gd1(const Sample *s) { // <b class="conum">(1)</b>
+    return s-&gt;attr_a &amp;&amp; s-&gt;attr_b; // <b class="conum">(2)</b>
+}
+
+static bool gd2(const Sample *s) { // <b class="conum">(3)</b>
+    return !s-&gt;attr_a || s-&gt;attr_b;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>ガード条件「gd1」判定用の関数。</p>
+</li>
+<li>
+<p>属性値を使った条件式の例。</p>
+</li>
+<li>
+<p>「gd2」用の関数。</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">ヒント</div>
+</td>
+<td class="content">
+<div class="title">C言語での関数のスコープ</div>
+<div class="paragraph">
+<p>C言語では、関数名を <code>static</code> キーワードで修飾することで関数のスコープを制限できます。</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>static</code> 宣言のない関数: 他のファイルから呼び出し可能（public相当）</p>
+</li>
+<li>
+<p><code>static</code> 宣言つきの関数: 同じファイル内からのみ呼び出し可能（private相当）</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>st0_proc</code> などの内部処理関数は、 <code>static</code> 宣言つきの関数にして、外部から直接呼び出せないようにします。</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_状態ごとの処理用関数を作成する1"><a class="anchor" href="#_状態ごとの処理用関数を作成する1"></a>3.6.8. 状態ごとの処理用関数を作成する（1）</h4>
+<div class="paragraph">
+<p>状態ごとの処理を受け持つメソッドを作成します。
+メソッド名は、状態名を小文字して「_proc」をつけるというルールにします。
+したがって、状態名「ST0」の場合、関数名は「st0_proc」になります（ <a href="_model_to_code_design.html#c_sample05">リスト 3.11</a> ）。</p>
+</div>
+<div id="c_sample05" class="listingblock">
+<div class="title">リスト 3.11 <code>sample.c</code>: 「ST0」の状態遷移の関数を作成する</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:30"><code data-lang="c">static void st0_proc(Sample *s, Event evt, int p01) {
+    switch (evt) {  // <b class="conum">(1)</b>
+        case EV1:  // <b class="conum">(2)</b>
+            if (gd1(s)) {  // <b class="conum">(3)</b>
+                act1(evt, p01);  // <b class="conum">(4)</b>
+                s-&gt;state.current = ST1;  // <b class="conum">(5)</b>
             } else {
-                printf("Event ignored due to guard condition\n");  <img src="images/icons/callouts/6.png" alt="6">
+                printf("Event ignored due to guard condition\n");  // <b class="conum">(6)</b>
             }
             break;
-        case EV3:  <img src="images/icons/callouts/7.png" alt="7">
-            act3(sample, evt, param);
-            sample-&gt;state = ST0;
+        case EV3:  // <b class="conum">(7)</b>
+            act3(evt, p01);
+            s-&gt;state.current = ST0;
             break;
         default:
             /* その他のイベントは無視 */
@@ -1067,311 +1364,49 @@ void sample_play(Sample *sample, SampleEvent evt, int p01);</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>イベントで場合分けする</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>イベントが「EV1」の場合</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>ガード条件による判定</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>アクション「act1」の呼び出し</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>次の状態「ST1」への遷移</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>ガード条件が偽だったときの処理</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>イベントが「EV3」の場合</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<img src="images/icons/tip.png" alt="ヒント">
-</td>
-<td class="content">
-<div class="title">C言語での関数のスコープ</div>
-<div class="paragraph">
-<p>C言語では、`static`キーワードを使って関数のスコープを制限できます：</p>
-</div>
-<div class="ulist">
-<ul>
+<ol>
 <li>
-<p>`static`のない関数: 他のファイルから呼び出し可能（public相当）</p>
+<p>イベントで場合分けする。</p>
 </li>
 <li>
-<p>`static`付き関数: 同じファイル内からのみ呼び出し可能（private相当）</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>`st0_proc`などの内部処理関数は`static`にして、外部から直接呼び出せないようにします。</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_ガード条件の判定用メソッドを作成する"><a class="anchor" href="#_ガード条件の判定用メソッドを作成する"></a>3.3.8. ガード条件の判定用メソッドを作成する</h4>
-<div class="paragraph">
-<p>このサンプルのステートマシン図には、状態遷移のガード条件として「gd1」「gd2」が登場します。
-これらをrubyのメソッドとして作成します。
-rubyでは、真偽値を返すメソッドには「?」をつける習慣がありますので、これにしたがってメソッド名は「gd1?」「gd2?」とします。
-サンプルとして、属性の値を使った演算を割り当てました（ <a href="_model_to_code_design.html#ruby_sample04">リスト 3.11</a> ）。</p>
-</div>
-<div id="ruby_sample04" class="listingblock">
-<div class="title">リスト 3.11 【Ruby】ガード条件のメソッドを作成する</div>
-<div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby">class Sample
-  def initialize
-    # 略
-  end
-
-  def play
-    # 略
-  end
-
-  def gd1? <img src="images/icons/callouts/1.png" alt="1">
-    @attr_a &amp;&amp; @attr_b <img src="images/icons/callouts/2.png" alt="2">
-  end
-
-  def gd2? <img src="images/icons/callouts/3.png" alt="3">
-    !@attr_a || @attr_b
-  end
-end</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>「gd1」用のメソッド。真偽値を返すメソッドに「?」をつけるRubyの習慣に倣った。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>属性値を使った条件式の例。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>「gd2」用のメソッド。</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_状態遷移を追加する１"><a class="anchor" href="#_状態遷移を追加する１"></a>3.3.9. 状態遷移を追加する（１）</h4>
-<div class="paragraph">
-<p>状態ごとの処理を受け持つメソッドを作成します。
-メソッド名は、状態名を小文字して「_proc」をつけるというルールにします。
-したがって、状態名「ST0」の場合、メソッド名は「st0_proc」になります（ <a href="_model_to_code_design.html#ruby_sample05">リスト 3.12</a> ）。</p>
-</div>
-<div id="ruby_sample05" class="listingblock">
-<div class="title">リスト 3.12 【Ruby】「ST0」の状態遷移のメソッドを作成する</div>
-<div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby">class Sample
-  def initialize
-    # 略
-  end
-
-  def play
-    # 略
-  end
-
-  def st0_proc(evt, param)
-    case evt <img src="images/icons/callouts/1.png" alt="1">
-    when :ev1 <img src="images/icons/callouts/2.png" alt="2">
-      if gd1? <img src="images/icons/callouts/3.png" alt="3">
-        puts "    gd1: #{gd1?}"
-        act1(evt, param) <img src="images/icons/callouts/4.png" alt="4">
-        @state = :ST1 <img src="images/icons/callouts/5.png" alt="5">
-      else <img src="images/icons/callouts/6.png" alt="6">
-        puts "    &lt;&lt;&lt; gd1: #{gd1?}, transition is ignored. &gt;&gt;&gt;"
-      end
-    when :ev3 <img src="images/icons/callouts/7.png" alt="7">
-      act3(evt, param)
-      @state = :ST2
-    end
-  end
-
-  # gd1?, gd2? が続く
-end</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>イベントで場合分けする。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>イベントが「ev1」の場合。イベントはRubyのシンボルを使って表す。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>ガード条件による判定。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>アクション「act1」の呼び出し。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>次の状態「ST1」への遷移。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>ガード条件が偽だったとき。イベントが無視されたことを表示する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>イベントが「ev3」の場合。</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>この部分のRubyのコードとステートマシン図の対応を図で表してみましょう（ <a href="_model_to_code_design.html#ruby_sample06">図 3.19</a> ）。</p>
-</div>
-<div id="ruby_sample06" class="imageblock">
-<div class="content">
-<img src="images/ruby_sample05.png" alt="ruby sample05" width="100%">
-</div>
-<div class="title">図 3.19 Rubyのコードとステートマシン図の対応関係（１）</div>
-</div>
-<div class="paragraph">
-<p>おおむねのことは <a href="_model_to_code_design.html#ruby_sample06">図 3.19</a> を読めばわかるでしょうが、対応関係を説明しておきます。</p>
-</div>
-<div class="sidebarblock">
-<div class="content">
-<div class="title">ガード条件のある状態遷移をRubyのコードで表すルール</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>遷移元の状態で待っているイベントごとに場合分けする。</p>
+<p>イベントが「ev1」の場合。イベントはenumのシンボルを使って表す。</p>
 </li>
 <li>
-<p>ガード条件なしのときは（アクションがあればそれを呼び出して）、次の状態へ遷移する。</p>
+<p>ガード条件による判定。</p>
 </li>
 <li>
-<p>ガード条件があるときは、先にガード条件を評価して、真であればアクションを実行して次の状態へ遷移する。</p>
+<p>アクション「act1」の呼び出し。</p>
 </li>
 <li>
-<p>ガード条件が偽のときは、アクションは実行されず、状態も遷移しない。</p>
+<p>次の状態「ST1」への遷移。</p>
+</li>
+<li>
+<p>ガード条件が偽だったとき。イベントが無視されたことを表示する。</p>
+</li>
+<li>
+<p>イベントが「ev3」の場合。</p>
 </li>
 </ol>
 </div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_状態遷移を追加する２"><a class="anchor" href="#_状態遷移を追加する２"></a>3.3.10. 状態遷移を追加する（２）</h4>
 <div class="paragraph">
-<p>こんどは、「ST1」からの状態遷移に対するメソッド「st1_proc」です（ <a href="_model_to_code_design.html#ruby_sample07">リスト 3.13</a> ）。</p>
+<p>改めて、この部分のC言語のコードとステートマシン図の対応を、図で確認してみましょう（ <a href="_model_to_code_design.html#c_sample066">図 3.22</a> ）。</p>
 </div>
-<div id="ruby_sample07" class="listingblock">
-<div class="title">リスト 3.13 【Ruby】「ST1」の状態遷移のメソッドを作成する</div>
+<div id="c_sample066" class="imageblock">
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby">class Sample
-  def initialize
-    # 略
-  end
-
-  def play
-    # 略
-  end
-
-  def st0_proc(evt, param)
-    # 略
-  end
-
-  def st1_proc(evt, param)
-    case evt
-    when :ev2 <img src="images/icons/callouts/1.png" alt="1">
-      act2(evt, param) <img src="images/icons/callouts/2.png" alt="2">
-      puts "    gd2: #{gd2?}"
-      if gd2? <img src="images/icons/callouts/3.png" alt="3">
-        @state = :ST2 <img src="images/icons/callouts/4.png" alt="4">
-      else
-        act3(evt, param) <img src="images/icons/callouts/5.png" alt="5">
-        @state = :ST0 <img src="images/icons/callouts/6.png" alt="6">
-      end
-    when :ev3 <img src="images/icons/callouts/7.png" alt="7">
-      act3(evt, param)
-      @state = :ST0
-    end
-  end
-
-  # gd1?, gd2? が続く
-end</code></pre>
+<img src="images/c_sample05.png" alt="c sample05" width="100%">
 </div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>イベントが「ev2」の場合。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>アクション「act2」の呼び出し。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>選択疑似状態におけるガード条件による判定。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>次の状態「ST0」への遷移。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>選択疑似状態からの遷移におけるアクション「act3」の呼び出し。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>次の状態「ST2」への遷移。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>イベントが「ev3」の場合。</td>
-</tr>
-</table>
+<div class="title">図 3.22 C言語のコードとステートマシン図の対応関係（再掲）</div>
 </div>
 <div class="paragraph">
-<p>この部分のRubyのコードとステートマシン図の対応を図で表してみましょう（ <a href="_model_to_code_design.html#ruby_sample08">図 3.20</a> ）。</p>
-</div>
-<div id="ruby_sample08" class="imageblock">
-<div class="content">
-<img src="images/ruby_sample08.png" alt="ruby sample08" width="100%">
-</div>
-<div class="title">図 3.20 Rubyのコードとステートマシン図の対応関係（２）</div>
-</div>
-<div class="paragraph">
-<p>おおむねのことは <a href="_model_to_code_design.html#ruby_sample08">図 3.20</a> を読めばわかるでしょうが、対応関係を説明しておきます。</p>
+<p>おおむねのことは <a href="_model_to_code_design.html#c_sample066">図 3.22</a> を読めばわかるでしょうが、対応関係を説明しておきます。</p>
 </div>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">選択疑似状態がある状態遷移をRubyのコードで表すルール</div>
 <div class="olist arabic">
+<div class="title">選択疑似状態がある状態遷移をC言語のコードで表すルール</div>
 <ol class="arabic">
 <li>
-<p>選択疑似状態の前の状態遷移については、<a href="_model_to_code_design.html#ruby_sample06">図 3.19</a> のルールで賄う。</p>
+<p>選択疑似状態の前の状態遷移については、<a href="_model_to_code_design.html#c_sample06">図 3.21</a> のルールで賄う。</p>
 </li>
 <li>
 <p>その後で、選択疑似状態の後の状態遷移のガード条件を評価する。</p>
@@ -1386,61 +1421,122 @@ end</code></pre>
 </div>
 </div>
 </div>
-<div class="paragraph">
-<p>このサンプルでは、アクション「act1」、「act2」、「act3」は、定めたルールを確認しやすいメソッドにしておきます（ <a href="_model_to_code_design.html#ruby_sample09">リスト 3.14</a> ）。
-これらのアクションと、先に挙げたガード条件をチェックするメソッドは、「Sample」クラス内部のメソッドだけが使います。そこで、Rubyのコードでもこれらのメソッドのスコープを「private」にしましょう。Rubyでは、「private」キーワードを追加してその後にメソッドを配置します。</p>
 </div>
-<div id="ruby_sample09" class="listingblock">
-<div class="title">リスト 3.14 【Ruby】「ST1」の状態遷移のメソッドを作成する</div>
+<div class="sect3">
+<h4 id="_状態遷移を追加する2"><a class="anchor" href="#_状態遷移を追加する2"></a>3.6.9. 状態遷移を追加する（2）</h4>
+<div class="paragraph">
+<p>こんどは、「ST1」からの状態遷移に対する関数「st1_proc」です（ <a href="_model_to_code_design.html#c_sample07">リスト 3.12</a> ）。</p>
+</div>
+<div id="c_sample07" class="listingblock">
+<div class="title">リスト 3.12 <code>sample.c</code>: 「ST1」の状態遷移の関数を作成する</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby">class Sample
-  # initialize、play、st0_proc、st1_proc の定義を省略
-
-  praivate <img src="images/icons/callouts/1.png" alt="1">
-
-  def act1(evt, prm)
-    puts "     act1: event:#{evt}, param: #{prm}"
-  end
-
-  def act2(evt, prm)
-    puts "     act2: event:#{evt}, param: #{prm}"
-  end
-
-  def act3(evt, prm)
-    puts "     act3: event:#{evt}, param: #{prm}"
-  end
-
-  def gd1? <img src="images/icons/callouts/2.png" alt="2">
-    @attr_a &amp;&amp; @attr_b
-  end
-
-  def gd2?
-    !@attr_a || @attr_b
-  end
-end</code></pre>
+<pre class="prettyprint highlight linenums:50"><code data-lang="c">static void st1_proc(Sample *s, Event evt, int p01) {
+    switch (evt) {  // <b class="conum">(1)</b>
+    case EV2:  // <b class="conum">(2)</b>
+        act2(evt, p01);  // <b class="conum">(4)</b>
+        if (gd2(s)) {  // <b class="conum">(3)</b>
+            act3(evt, p01);  // <b class="conum">(4)</b>
+            s-&gt;state.current = ST0;  // <b class="conum">(5)</b>
+        } else {
+            s-&gt;state.current = ST2;  // <b class="conum">(6)</b>
+        }
+        break;
+    case EV3:  // <b class="conum">(7)</b>
+        act3(evt, p01);
+        s-&gt;state.current = ST0;
+        break;
+    default:
+        /* その他のイベントは無視 */
+        break;
+    }
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>この宣言以降のメソッドは、可視性が「private」なメソッドになる。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>ガード条件の判定用メソッドも「private」なメソッドに含めた。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>イベントが「ev2」の場合。</p>
+</li>
+<li>
+<p>アクション「act2」の呼び出し。</p>
+</li>
+<li>
+<p>選択疑似状態におけるガード条件による判定。</p>
+</li>
+<li>
+<p>次の状態「ST2」への遷移。</p>
+</li>
+<li>
+<p>選択疑似状態からの遷移におけるアクション「act3」の呼び出し。</p>
+</li>
+<li>
+<p>次の状態「ST0」への遷移。</p>
+</li>
+<li>
+<p>イベントが「ev3」の場合。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>これで、ステートマシン図で表したクラスの振る舞いをRubyのコードに対応づけられました。</p>
+<p>この部分のC言語のコードとステートマシン図の対応を図で表してみましょう（ <a href="_model_to_code_design.html#c_sample08">図 3.23</a> ）。</p>
+</div>
+<div id="c_sample08" class="imageblock">
+<div class="content">
+<img src="images/c_sample08.png" alt="c sample08" width="100%">
+</div>
+<div class="title">図 3.23 C言語のコードとステートマシン図の対応関係（2）</div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_追加したアクションをクラス図に反映する"><a class="anchor" href="#_追加したアクションをクラス図に反映する"></a>3.3.11. 追加したアクションをクラス図に反映する</h4>
+<h4 id="_アクションを処理する関数を追加する"><a class="anchor" href="#_アクションを処理する関数を追加する"></a>3.6.10. アクションを処理する関数を追加する</h4>
 <div class="paragraph">
-<p>ステートマシン図を作成するときに追加したアクションは、このステートマシン図を割り当てているクラス（ここでは「Sample」クラス）の操作にしておきましょう。
-ここで、「Sample」クラスをテストするクラス「SampleTest」も追加しておきます。</p>
+<p>このサンプルでは、アクション「act1」、「act2」、「act3」は、定めたルールを確認しやすいメソッドにしておきます（ <a href="_model_to_code_design.html#c_sample09">リスト 3.13</a> ）。
+これらのアクションと、先に挙げたガード条件をチェックするメソッドは、「Sample」クラス内部のメソッドだけが使います。
+そこで、C言語のコードでもこれらのメソッドのスコープをプライベートにしましょう。
+C言語では、関数名を「static」で修飾すると、そのファイルの内部では参照できますが、外部からは参照できない関数になります。
+この方法を使えば、状態遷移の操作をクラスの外から参照できないプライベートな関数として実装できます。</p>
+</div>
+<div id="c_sample09" class="listingblock">
+<div class="title">リスト 3.13 <code>sample.c</code>: アクションの処理用の関数を作成する</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:18"><code data-lang="c">static void act1(Event evt, int prm) { // <b class="conum">(1)</b>
+    printf("    act1: event:%d, param: %d\n", evt, prm);
+}
+
+static void act2(Event evt, int prm) { // <b class="conum">(2)</b>
+    printf("    act2: event:%d, param: %d\n", evt, prm);
+}
+
+static void act3(Event evt, int prm) { // <b class="conum">(3)</b>
+    printf("    act3: event:%d, param: %d\n", evt, prm);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>アクション「act1」の処理用関数。</p>
+</li>
+<li>
+<p>アクション「act2」の処理用関数。</p>
+</li>
+<li>
+<p>アクション「act3」の処理用関数。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>これで、ステートマシン図で表したクラスの振る舞いをC言語のコードに対応づけられました。</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_追加したアクションをクラス図に反映する"><a class="anchor" href="#_追加したアクションをクラス図に反映する"></a>3.7. 追加したアクションをクラス図に反映する</h3>
+<div class="paragraph">
+<p>ステートマシン図を作成するときに追加したアクションは、このステートマシン図を割り当てているクラス（ここでは「Sample」クラス）の操作にしておきましょう。</p>
+</div>
+<div class="paragraph">
+<p>また、ここで、「Sample」クラスをテストするクラス「SampleTest」も追加しておきましょう。</p>
 </div>
 <div id="update_sample_class00" class="olist arabic">
 <div class="title">イベントやアクションをクラス図に反映する</div>
@@ -1458,7 +1554,7 @@ end</code></pre>
 <p>可視性を「private」に設定する。</p>
 </li>
 <li>
-<p>「act2」、「act3」についても同じように設定する（ <a href="_model_to_code_design.html#update_sample_class01">図 3.21</a> ）。</p>
+<p>「act2」、「act3」についても同じように設定する（ <a href="_model_to_code_design.html#update_sample_class01">図 3.24</a> ）。</p>
 </li>
 </ol>
 </div>
@@ -1466,15 +1562,22 @@ end</code></pre>
 <div class="content">
 <img src="images/GSW-20220216-050914.png" alt="GSW 20220216 050914" width="75%">
 </div>
-<div class="title">図 3.21 「Sample」クラス内部で使う操作「act1、「act2」「act3」を追加する</div>
+<div class="title">図 3.24 「Sample」クラス内部で使う操作「act1、「act2」「act3」を追加する</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic" start="6">
 <li>
 <p>ガード条件に使うメソッド「gd1?」「gd2?」も追加しておく。</p>
+<div class="ulist">
+<ul>
+<li>
+<p>C言語の関数名は、 <code>gd1</code> 、 <code>gd2</code> とする。</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p>「SampleTest」クラスを追加する（ <a href="_model_to_code_design.html#update_sample_class02">図 3.22</a> ）。</p>
+<p>「SampleTest」クラスを追加する（ <a href="_model_to_code_design.html#update_sample_class02">図 3.25</a> ）。</p>
 <div class="ulist">
 <ul>
 <li>
@@ -1495,21 +1598,21 @@ end</code></pre>
 <div class="content">
 <img src="images/GSW-20220224-113632.png" alt="GSW 20220224 113632" width="75%">
 </div>
-<div class="title">図 3.22 「SampleTest」クラスと関連を追加する</div>
+<div class="title">図 3.25 「SampleTest」クラスと関連を追加する</div>
 </div>
 <div class="paragraph">
-<p>これで、クラス図とステートマシン図とRubyのコードの対応づけができました。
+<p>これで、クラス図とステートマシン図とC言語のコードの対応づけができました。
 実際の問題について、クラス図やステートマシン図を作成するときは、このようなルールを使う前提で作成します。
-そして、Rubyでコードを作成するときは、作成した図と対網づけのルールを使ってコードを作成します。</p>
+そして、C言語でコードを作成するときは、作成した図と対応づけのルールを使ってコードを作成します。</p>
 </div>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">【参考】列挙型（enum）をクラス図に反映する方法について</div>
+<div class="title">列挙型（enum）をクラス図に反映する方法について【参考】</div>
 <div class="paragraph">
-<p>Rubyにはenumのような列挙子を直接定義する方法がないので、このチュートリアルの簡単のために、状態を表す定数を定義するために「シンボル（:ST0など）」を使いました。</p>
+<p>UMLにはenumのような列挙子を直接定義する記法がないので、このチュートリアルの簡単のために、図中の状態やイベントを目視で洗い出してC言語のenumに割り当てました。</p>
 </div>
 <div class="paragraph">
-<p>astah* は、Java, C#、C++ については、enumを設定する方法を提供していますので、その方法で代用してもよいでしょう。</p>
+<p>astah* は、Java, C#、C++ については、スレレオタイプを使ってenumを表現する方法を提案していますので、その方法で代用してもよいでしょう。</p>
 </div>
 <div class="paragraph">
 <p>詳しい設定方法については、次の記事を参考にしてみてください。</p>
@@ -1525,121 +1628,542 @@ end</code></pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_変換ルールを使ったコードを確認する"><a class="anchor" href="#_変換ルールを使ったコードを確認する"></a>3.4. 変換ルールを使ったコードを確認する</h3>
+<h3 id="_変換ルールを使ったコードを確認する"><a class="anchor" href="#_変換ルールを使ったコードを確認する"></a>3.8. 変換ルールを使ったコードを確認する</h3>
 <div class="paragraph">
-<p>検討用のクラス図とステートマシン図に対応づけたRubyのプログラムの動作を確認してみましょう。</p>
+<p>検討用のクラス図とステートマシン図に対応づけたC言語のプログラムの動作を確認してみましょう。</p>
 </div>
-<div class="sect3">
-<h4 id="_検討用モデルに対応したrubyプログラムの全体"><a class="anchor" href="#_検討用モデルに対応したrubyプログラムの全体"></a>3.4.1. 検討用モデルに対応したRubyプログラムの全体</h4>
-<div class="paragraph">
-<p>作成したプログラムの全体を <a href="_model_to_code_design.html#ruby_sample_code01">リスト 3.15</a>  に示します。
-このプログラムのコードには、「SampleTest」のインスタンスを作成して、テストを起動する処理や、テストメソッドの具体例が含まれています。
-テストクラスやテスト用メソッドの細かい説明は省きます。</p>
-</div>
-<div id="ruby_sample_code01" class="listingblock">
-<div class="title">リスト 3.15 stm_sample.rb</div>
-<div class="content">
-<pre class="prettyprint highlight linenums"><code data-lang="ruby"># should replace ruby cocdes to C codes.
-<img src="images/icons/callouts/1.png" alt="1">
-<img src="images/icons/callouts/2.png" alt="2">
-<img src="images/icons/callouts/3.png" alt="3">
-<img src="images/icons/callouts/4.png" alt="4"></code></pre>
-</div>
-</div>
-<div class="colist arabic">
+<div class="admonitionblock note">
 <table>
 <tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>文字列の破壊的変更の検出を指示するマジックコメント。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>簡便にテストするために、アクセサーを追加した（あくまでこのサンプルにおける便宜として）。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>Sampleクラスのメソッドを呼び出すテストを定義したテスト用のクラスの定義。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>テスト用クラスを実行するコード。このブロックはファイル名と実行プログラム名が一致するときに有効になる（そのときだけ実行される）。</td>
+<td class="icon">
+<div class="title">注記</div>
+</td>
+<td class="content">
+この段階のサンプルコードは、 <code>codes/sample03</code> ディレクトリに用意してあります。
+</td>
 </tr>
 </table>
 </div>
+<div class="sect3">
+<h4 id="_検討用モデルに対応したc言語プログラムの全体"><a class="anchor" href="#_検討用モデルに対応したc言語プログラムの全体"></a>3.8.1. 検討用モデルに対応したC言語プログラムの全体</h4>
+<div class="paragraph">
+<p>作成したプログラムの全体を <a href="_model_to_code_design.html#c_sample03_sample_h">リスト 3.14</a> 、 <a href="_model_to_code_design.html#c_sample03_sample_c">リスト 3.15</a> 、 <a href="_model_to_code_design.html#c_sample03_sample_test_h">リスト 3.16</a> 、 <a href="_model_to_code_design.html#c_sample03_sample_test_c">リスト 3.17</a> 、 <a href="_model_to_code_design.html#c_sample03_main">リスト 3.18</a> に示します。</p>
+</div>
+<div class="paragraph">
+<p>これらのソースコードには、「SampleTest」のインスタンスを作成して、テストを起動する処理や、テストメソッドの具体例が含まれています。
+また、実行結果をみやすくするために、enumの値を文字列に変換するユーティリティ関数も追加しました。</p>
+</div>
+<div id="c_sample03_sample_h" class="listingblock">
+<div class="title">リスト 3.14 <code>sample.h</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums"><code data-lang="c">#ifndef SAMPLE_H
+#define SAMPLE_H
+
+#include &lt;stdbool.h&gt;
+
+/* ---------- State ---------- */
+
+typedef enum {
+    ST0,
+    ST1,
+    ST2,
+    ST_INVALID
+} State;
+
+/* ---------- SampleState ---------- */
+
+typedef struct {
+    State current;
+} SampleState;
+
+void  sample_state_init(SampleState *ss);
+State sample_state_transit_to(SampleState *ss, State new_state);
+
+/* ---------- Event ---------- */
+
+typedef enum {
+    EV1,
+    EV2,
+    EV3,
+    EV_UNKNOWN
+} Event;
+
+/* ---------- Sample ---------- */
+
+typedef struct {
+    bool attr_a;
+    bool attr_b;
+    SampleState state;
+} Sample;
+
+void sample_init(Sample *s);
+void sample_play(Sample *s, Event evt, int p01);
+
+const char *state_name(State s); // <b class="conum">(1)</b>
+const char *event_name(Event e); // <b class="conum">(2)</b>
+
+#endif /* SAMPLE_H */</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>状態名を文字列に変換するためのユーティリティ関数。</p>
+</li>
+<li>
+<p>イベント名を文字列に変換するためのユーティリティ関数。</p>
+</li>
+</ol>
+</div>
+<div id="c_sample03_sample_c" class="listingblock">
+<div class="title">リスト 3.15 <code>sample.c</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums"><code data-lang="c">#include &lt;stdio.h&gt;
+#include "sample.h"
+
+/* ---------- State ---------- */
+
+const char *state_name(State s) { // <b class="conum">(1)</b>
+    switch (s) {
+        case ST0: return "ST0";
+        case ST1: return "ST1";
+        case ST2: return "ST2";
+        default:  return "UNKNOWN";
+    }
+}
+
+/* ---------- SampleState ---------- */
+
+void sample_state_init(SampleState *ss) {
+    ss-&gt;current = ST0;
+}
+
+State sample_state_transit_to(SampleState *ss, State new_state) {
+    if (new_state &lt; ST_INVALID) {
+        ss-&gt;current = new_state;
+    } else {
+        printf("invalid state: %d.\n", new_state);
+    }
+    return ss-&gt;current;
+}
+
+/* ---------- Event ---------- */
+
+const char *event_name(Event e) { // <b class="conum">(2)</b>
+    switch (e) {
+        case EV1: return "ev1";
+        case EV2: return "ev2";
+        case EV3: return "ev3";
+        default:  return "unknown";
+    }
+}
+
+/* ---------- Sample ---------- */
+
+void sample_init(Sample *s) {
+    sample_state_init(&amp;s-&gt;state);
+    s-&gt;attr_a = true;
+    s-&gt;attr_b = true;
+}
+
+static bool gd1(const Sample *s) {
+    return s-&gt;attr_a &amp;&amp; s-&gt;attr_b;
+}
+
+static bool gd2(const Sample *s) {
+    return !s-&gt;attr_a || s-&gt;attr_b;
+}
+
+static void act1(Event evt, int prm) {
+    printf("     act1: event:%s, param: %d\n", event_name(evt), prm);
+}
+
+static void act2(Event evt, int prm) {
+    printf("     act2: event:%s, param: %d\n", event_name(evt), prm);
+}
+
+static void act3(Event evt, int prm) {
+    printf("     act3: event:%s, param: %d\n", event_name(evt), prm);
+}
+
+static void st0_proc(Sample *s, Event evt, int p01) {
+    switch (evt) {
+    case EV1:
+        if (gd1(s)) {
+            printf("    gd1: true\n");
+            act1(evt, p01);
+            sample_state_transit_to(&amp;s-&gt;state, ST1);
+        } else {
+            printf("    &lt;&lt;&lt; gd1: false, transition is ignored. &gt;&gt;&gt;\n");
+        }
+        break;
+    case EV3:
+        act3(evt, p01);
+        sample_state_transit_to(&amp;s-&gt;state, ST2);
+        break;
+    default:
+        break;
+    }
+}
+
+static void st1_proc(Sample *s, Event evt, int p01) {
+    switch (evt) {
+    case EV2:
+        act2(evt, p01);
+        printf("    gd2: %s\n", gd2(s) ? "true" : "false");
+        if (gd2(s)) {
+            sample_state_transit_to(&amp;s-&gt;state, ST2);
+        } else {
+            act3(evt, p01);
+            sample_state_transit_to(&amp;s-&gt;state, ST0);
+        }
+        break;
+    case EV3:
+        act3(evt, p01);
+        sample_state_transit_to(&amp;s-&gt;state, ST0);
+        break;
+    default:
+        break;
+    }
+}
+
+void sample_play(Sample *s, Event evt, int p01) {
+    printf("%s -&gt;\n", state_name(s-&gt;state.current));
+    printf("  event:%s, param: %d\n", event_name(evt), p01);
+
+    switch (s-&gt;state.current) {
+        case ST0: st0_proc(s, evt, p01); break;
+        case ST1: st1_proc(s, evt, p01); break;
+        case ST2: /* none */ break;
+        default:  break;
+    }
+
+    printf("       -&gt; %s\n", state_name(s-&gt;state.current));
+    if (s-&gt;state.current == ST2) {
+        printf("finished.\n");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>状態名を文字列に変換するためのユーティリティ関数。</p>
+</li>
+<li>
+<p>イベント名を文字列に変換するためのユーティリティ関数。</p>
+</li>
+</ol>
+</div>
+<div id="c_sample03_sample_test_h" class="listingblock">
+<div class="title">リスト 3.16 <code>sample_test.h</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums"><code data-lang="d">#ifndef SAMPLE_TEST_H
+#define SAMPLE_TEST_H
+
+#include  "sample.h"
+
+void sample_test_run(void);
+
+#endif /* SAMPLE_TEST_H */</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>テスト関数の詳細は割愛します。</p>
+</div>
+<div id="c_sample03_sample_test_c" class="listingblock">
+<div class="title">リスト 3.17 <code>sample_test.c</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums"><code data-lang="c">#include &lt;stdio.h&gt;
+#include &lt;time.h&gt;
+#include "sample_test.h"
+
+static void test_base(const Event *events_list[], int list_size,
+                      const int *sizes, bool g0, bool g1) {
+    for (int i = 0; i &lt; list_size; i++) {
+        Sample samp;
+        sample_init(&amp;samp);
+        samp.attr_a = g0;
+        samp.attr_b = g1;
+
+        for (int j = 0; j &lt; sizes[i]; j++) {
+            int p = (int)(clock() % 1000000);
+            sample_play(&amp;samp, events_list[i][j], p);
+        }
+        printf("----------------\n");
+    }
+}
+
+static void test01(void) {
+    static const Event seq0[] = { EV1, EV2 };
+    static const Event seq1[] = { EV3 };
+    static const Event seq2[] = { EV1, EV3, EV3 };
+
+    static const Event *events_list[] = { seq0, seq1, seq2 };
+    static const int sizes[] = { 2, 1, 3 };
+
+    test_base(events_list, 3, sizes, true, true);
+}
+
+static void test02(void) {
+    static const Event seq0[] = { EV1, EV3 };
+    static const Event seq1[] = { EV1, EV2, EV3 };
+
+    static const Event *events_list[] = { seq0, seq1 };
+    static const int sizes[] = { 2, 3 };
+
+    test_base(events_list, 2, sizes, false, false);
+}
+
+static void test03(void) {
+    static const Event seq0[] = { EV1, EV2, EV3 };
+    static const Event seq1[] = { EV3 };
+
+    static const Event *events_list[] = { seq0, seq1 };
+    static const int sizes[] = { 3, 1 };
+
+    test_base(events_list, 2, sizes, true, false);
+}
+
+void sample_test_run(void) {
+    printf("================\n");
+    test01();
+    printf("================\n");
+    test02();
+    printf("================\n");
+    test03();
+}</code></pre>
+</div>
+</div>
+<div id="c_sample03_main" class="listingblock">
+<div class="title">リスト 3.18 <code>main.c</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums"><code data-lang="c">#include &lt;stdio.h&gt;
+#include "sample.h"
+#include "sample_test.h"
+
+int main(void) {
+    /* SampleState の単体動作確認 */
+    SampleState ss;
+    sample_state_init(&amp;ss);
+    printf("%s\n", state_name(ss.current));
+
+    printf("%s\n", state_name(sample_state_transit_to(&amp;ss, ST2)));
+    printf("%s\n", state_name(sample_state_transit_to(&amp;ss, ST_INVALID)));  /* invalid */
+    printf("%s\n", state_name(sample_state_transit_to(&amp;ss, ST1)));
+    printf("- - - -\n");
+
+    /* テスト実行 */
+    sample_test_run();
+
+    return 0;
+}</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_検討用モデルに対応したrubyプログラムを動かす"><a class="anchor" href="#_検討用モデルに対応したrubyプログラムを動かす"></a>3.4.2. 検討用モデルに対応したRubyプログラムを動かす</h4>
+<h4 id="_検討用モデルに対応したプログラムを動かす"><a class="anchor" href="#_検討用モデルに対応したプログラムを動かす"></a>3.8.2. 検討用モデルに対応したプログラムを動かす</h4>
 <div class="paragraph">
-<p>コマンドプロンプトを起動して（MacやLinuxならターミナルを起動して）、プログラムを実行してみます（ <a href="_model_to_code_design.html#ruby_sample_code02">リスト 3.16</a> ）。</p>
+<p>コマンドプロンプトを起動して（MacやLinuxならターミナルを起動して）、プログラムをビルドしましょう。
+ビルドに使う <code>Makefile</code> は <a href="_model_to_code_design.html#c_sample03_makefile">リスト 3.19</a> です。</p>
+</div>
+<div id="c_sample03_makefile" class="listingblock">
+<div class="title">リスト 3.19 <code>sample03</code> で使用する <code>makefile</code></div>
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="makefile">CC      = gcc
+CFLAGS  = -std=c99 -Wall -Wextra
+TARGET  = sample
+SRCS    = main.c sample.c sample_test.c
+OBJS    = $(SRCS:.c=.o)
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $&lt; -o $@
+
+main.o:        main.c sample.h sample_test.h
+sample.o:      sample.c sample.h
+sample_test.o: sample_test.c sample.h sample_test.h
+
+clean:
+	$(RM) $(OBJS) $(TARGET)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">コンパイラのオプションやマクロの意味</div>
+<ul>
+<li>
+<p><code>CC</code>&#8201;&#8212;&#8201;コンパイラの指定（ここでは <code>gcc</code> を使うことを指定）</p>
+</li>
+<li>
+<p><code>CFLAGS</code>&#8201;&#8212;&#8201;コンパイラオプション用マクロ</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>-std=c99</code> &#8201;&#8212;&#8201;C99規格を指定</p>
+</li>
+<li>
+<p><code>-Wall</code>&#8201;&#8212;&#8201;基本的な警告を有効化</p>
+</li>
+<li>
+<p><code>-Wextra</code>&#8201;&#8212;&#8201;追加の警告を有効化</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>TAEAGET</code>&#8201;&#8212;&#8201;出力ファイル名を指定</p>
+</li>
+<li>
+<p><code>SRCS</code>&#8201;&#8212;&#8201;コンパイル対象のソースコードファイル</p>
+</li>
+<li>
+<p><code>OBJS</code>&#8201;&#8212;&#8201;<code>SRCS</code> の拡張子を <code>.o</code> に変えたもの</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>ビルドには <code>make</code> コマンドを使います（ <a href="_model_to_code_design.html#c_sample03_build">リスト 3.20</a> ）。
+Windows環境の場合は、異なるビルド手順が必要かもしれません。</p>
+</div>
+<div id="c_sample03_build" class="listingblock">
+<div class="title">リスト 3.20 <code>sample</code> をビルドする</div>
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="console">make</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>実行プログラム <code>sample</code> が作成できたら、実行してみましょう（ <a href="_model_to_code_design.html#c_sample_code03">リスト 3.21</a> ）。</p>
 </div>
 <div class="paragraph">
 <p>動作させると、状態遷移やイベントが表示されます。
 作成したモデル図を比較して期待した動作をしているか確認してみましょう。</p>
 </div>
-<div id="ruby_sample_code02" class="listingblock">
-<div class="title">リスト 3.16 【端末】stm_sample.rb を実行する</div>
+<div id="c_sample_code03" class="listingblock">
+<div class="title">リスト 3.21 <code>sample</code> を実行する</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="console">C:\Users\kuboaki&gt;cd Desktop\BowlingScore
-
-C:\Users\kuboaki\Desktop\BowlingScore&gt;ruby stm_sample.rb
+<pre class="prettyprint highlight"><code data-lang="console">C:\Users\（演習用ディレクトリ）&gt;cd sample03
+C:\Users\（演習用ディレクトリ）&gt;\sample03&gt; ./sample # <b class="conum">(1)</b>
+ST0
+ST2
+invalid state: 3.
+ST2
+ST1
+- - - -
+================
 ST0 -&gt;
-  event:ev1, param: 676481
+  event:ev1, param: 6642
     gd1: true
-     act1: event:ev1, param: 676481
+     act1: event:ev1, param: 6642
        -&gt; ST1
 ST1 -&gt;
-  event:ev2, param: 678623
-     act2: event:ev2, param: 678623
+  event:ev2, param: 6644
+     act2: event:ev2, param: 6644
     gd2: true
        -&gt; ST2
 finished.
+----------------
+ST0 -&gt;
+  event:ev3, param: 6644
+     act3: event:ev3, param: 6644
+       -&gt; ST2
+finished.
+----------------
+ST0 -&gt;
+  event:ev1, param: 6646
+    gd1: true
+     act1: event:ev1, param: 6646
+       -&gt; ST1
+ST1 -&gt;
+  event:ev3, param: 6647
+     act3: event:ev3, param: 6647
+       -&gt; ST0
+ST0 -&gt;
+  event:ev3, param: 6647
+     act3: event:ev3, param: 6647
+       -&gt; ST2
+finished.
+----------------
 ================
 ST0 -&gt;
-  event:ev1, param: 680596
+  event:ev1, param: 6648
     &lt;&lt;&lt; gd1: false, transition is ignored. &gt;&gt;&gt;
        -&gt; ST0
 ST0 -&gt;
-  event:ev3, param: 681783
-     act3: event:ev3, param: 681783
+  event:ev3, param: 6648
+     act3: event:ev3, param: 6648
        -&gt; ST2
 finished.
-================
+----------------
 ST0 -&gt;
-  event:ev1, param: 683477
+  event:ev1, param: 6649
     &lt;&lt;&lt; gd1: false, transition is ignored. &gt;&gt;&gt;
        -&gt; ST0
 ST0 -&gt;
-  event:ev2, param: 685784
+  event:ev2, param: 6649
        -&gt; ST0
 ST0 -&gt;
-  event:ev3, param: 708214
-     act3: event:ev3, param: 708214
+  event:ev3, param: 6650
+     act3: event:ev3, param: 6650
        -&gt; ST2
 finished.
+----------------
 ================
-
-C:\Users\kuboaki\Desktop\BowlingScore&gt;</code></pre>
+ST0 -&gt;
+  event:ev1, param: 6651
+    gd1: true
+     act1: event:ev1, param: 6651
+       -&gt; ST1
+ST1 -&gt;
+  event:ev2, param: 6651
+     act2: event:ev2, param: 6651
+    gd2: false
+     act3: event:ev2, param: 6651
+       -&gt; ST0
+ST0 -&gt;
+  event:ev3, param: 6652
+     act3: event:ev3, param: 6652
+       -&gt; ST2
+finished.
+----------------
+ST0 -&gt;
+  event:ev3, param: 6652
+     act3: event:ev3, param: 6652
+       -&gt; ST2
+finished.
+----------------</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Windows環境では <code>sample.exe</code> となっているかもしれない。</p>
+</li>
+</ol>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_まとめ_2"><a class="anchor" href="#_まとめ_2"></a>3.5. まとめ</h3>
+<h3 id="_まとめ_2"><a class="anchor" href="#_まとめ_2"></a>3.9. まとめ</h3>
 <div class="paragraph">
-<p>クラス図とステートマシン図で動作を表現すれば、Rubyのコードに変換できることがわかりました。</p>
+<p>クラス図とステートマシン図で動作を表現すれば、C言語のコードに変換できることがわかりました。</p>
 </div>
 <div class="sect3">
-<h4 id="_構造のモデルを作成した手順_2"><a class="anchor" href="#_構造のモデルを作成した手順_2"></a>3.5.1. 構造のモデルを作成した手順</h4>
+<h4 id="_構造のモデルを作成した手順_2"><a class="anchor" href="#_構造のモデルを作成した手順_2"></a>3.9.1. 構造のモデルを作成した手順</h4>
 <div class="paragraph">
 <p>構造のモデルに登場する構成要素や要素間の関連を見つけ出し、スコアシートの構造を整理しました。</p>
 </div>
 <div id="step_for_structure_model02" class="sidebarblock">
 <div class="content">
-<div class="title">スコアシートの構造のモデルを作成した手順</div>
 <div class="olist arabic">
+<div class="title">スコアシートの構造のモデルを作成した手順</div>
 <ol class="arabic">
 <li>
 <p>スコアシートに関する構成要素の発見</p>
@@ -1667,7 +2191,7 @@ C:\Users\kuboaki\Desktop\BowlingScore&gt;</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_構造のモデルだけではプログラムは作れない"><a class="anchor" href="#_構造のモデルだけではプログラムは作れない"></a>3.5.2. 構造のモデルだけではプログラムは作れない</h4>
+<h4 id="_構造のモデルだけではプログラムは作れない"><a class="anchor" href="#_構造のモデルだけではプログラムは作れない"></a>3.9.2. 構造のモデルだけではプログラムは作れない</h4>
 <div class="paragraph">
 <p>構造のモデルを作ったことで、プログラムを構成する要素と、要素同士の関係（関連）を表せるようになりました。
 また、クラスのインスタンスをオブジェクト図に見合うように作成すれば、実際に観察したスコアシートと同じようなデータ構造を作成できることもわかりました。</p>
@@ -1689,7 +2213,7 @@ C:\Users\kuboaki\Desktop\BowlingScore&gt;</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-バージョン html 0786<br>
+バージョン html 0795<br>
 最終更新 2026-03-04 11:50:36 +0900
 </div>
 </div>

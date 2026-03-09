@@ -10,7 +10,11 @@ class CustomSidebarCaptionHtml5Converter < (Asciidoctor::Converter.for 'html5')
 
   def convert_sidebar(node)
     # warn 'Converting a sidebar node...'
-    node.title = %(【#{node.caption}】 #{node.title})
+    if node.caption
+      node.title = %(【#{node.caption}】 #{node.title})
+    elsif node.title
+      node.title = %(【#{node.title}】)
+    end
     super
   end
 end

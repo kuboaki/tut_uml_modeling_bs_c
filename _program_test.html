@@ -20,8 +20,8 @@
 <h1>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</h1>
 <div class="details">
 <span id="author" class="author">株式会社チェンジビジョン</span><br>
-<span id="revnumber">バージョン html 0786,</span>
-<span id="revdate">2026-03-05</span>
+<span id="revnumber">バージョン html 0795,</span>
+<span id="revdate">2026-03-09</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">目次</div>
@@ -75,18 +75,598 @@
 <div class="sect3">
 <h4 id="_作成したプログラムを確認する"><a class="anchor" href="#_作成したプログラムを確認する"></a>5.1.1. 作成したプログラムを確認する</h4>
 <div class="paragraph">
-<p>作成したプログラムの全体を <a href="#ruby_all_code01">[ruby_all_code01]</a> に示します。
+<p>作成したプログラムの全体を <a href="_program_test.html#c_all_code01">リスト 5.1</a> 、 <a href="_program_test.html#c_all_code02">リスト 5.2</a> に示します。
 みなさんも作成したプログラムの全体を確認しましょう。</p>
+</div>
+<div id="c_all_code01" class="listingblock">
+<div class="title">リスト 5.1 <code>bowling.h</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.h - ボーリングスコア管理システム */
+#ifndef BOWLING_H
+#define BOWLING_H
+
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;time.h&gt;
+
+/* 定数定義 */
+#define MAX_FRAMES 15       /* ダミーフレーム含む配列サイズ */
+#define MAX_PLAYERS 10      /* 最大プレイヤー数 */
+#define MAX_GAMES 20        /* 最大ゲーム数 */
+#define MAX_NAME_LEN 64     /* プレイヤー名の最大長 */
+#define ID_LEN 12           /* ID文字列の長さ */
+
+/* フレームの状態 */
+typedef enum {
+    RESERVED,
+    BEFORE_1ST,
+    BEFORE_2ND,
+    PENDING,
+    FIXED
+} FrameState;
+
+/* イベントタイプ */
+typedef enum {
+    SETUP,
+    PINS,
+    DETERMINE
+} EventType;
+
+/* スコアの状態 */
+typedef enum {
+    WAIT_FOR_1ST,
+    WAIT_FOR_2ND,
+    FINISHED
+} ScoreState;
+
+/* Frame構造体: 1フレーム分のピン数やボーナスを記録 */
+typedef struct {
+    int frame_no;
+    int first;
+    int second;
+    int spare_bonus;
+    int strike_bonus;
+    int total;
+    FrameState state;
+} Frame;
+
+/* Frame関数 */
+void frame_init(Frame *frame, int frame_no);
+void frame_action(Frame *frame, EventType event, int pins);
+int frame_score(const Frame *frame);
+bool frame_is_strike(const Frame *frame);
+bool frame_is_spare(const Frame *frame);
+bool frame_is_miss(const Frame *frame);
+bool frame_is_gutter(const Frame *frame);
+bool frame_is_fixed(const Frame *frame);
+void frame_print(const Frame *frame);
+
+/* Score構造体: 各人の10フレーム分のスコアを記録 */
+typedef struct {
+    char id[ID_LEN];
+    char player[MAX_NAME_LEN];
+    int fno;
+    Frame frames[MAX_FRAMES];
+    ScoreState state;
+} Score;
+
+/* Score関数 */
+void score_init(Score *score, const char *name);
+int score_fno2idx(int fno);
+Frame* score_frame(Score *score, int fno);
+void score_go_next_frame(Score *score);
+Frame* score_current(Score *score);
+Frame* score_prev(Score *score);
+Frame* score_pprev(Score *score);
+void score_calc_spare_bonus_after_1st(Score *score);
+void score_calc_strike_bonus_after_1st(Score *score);
+void score_calc_strike_bonus_after_2nd(Score *score);
+void score_update_total(Score *score);
+bool score_is_finished(const Score *score);
+void score_scoring(Score *score, int pins);
+void score_print(const Score *score);
+
+/* Game構造体: 複数名の1ゲーム分のスコアのセット */
+typedef struct {
+    char id[ID_LEN];
+    int turn;
+    Score scores[MAX_PLAYERS];
+    int player_count;
+} Game;
+
+/* Game関数 */
+void game_init(Game *game);
+void game_entry(Game *game, const char *name);
+const char* game_turn_player_name(const Game *game);
+void game_go_next_turn(Game *game);
+void game_playing(Game *game, int score_index, int pins);
+bool game_is_finished(const Game *game);
+void game_print(const Game *game);
+
+/* ScoreSheet構造体: 複数名の複数回のGameを記録 */
+typedef struct {
+    char id[ID_LEN];
+    time_t play_date;
+    Game games[MAX_GAMES];
+    int game_count;
+} ScoreSheet;
+
+/* ScoreSheet関数 */
+void scoresheet_init(ScoreSheet *sheet, time_t date);
+void scoresheet_add_game(ScoreSheet *sheet, int games);
+void scoresheet_print(const ScoreSheet *sheet);
+
+/* ユーティリティ関数 */
+void generate_id(char *id);
+const char* frame_state_to_string(FrameState state);
+
+#endif /* BOWLING_H */</code></pre>
+</div>
+</div>
+<div id="c_all_code02" class="listingblock">
+<div class="title">リスト 5.2 <code>bowling.c</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.c - ボーリングスコア管理システムの実装 */
+#include "bowling.h"
+
+void generate_id(char *id) { // <b class="conum">(1)</b>
+    static int counter = 0;
+    snprintf(id, ID_LEN, "ID%08d", counter++);
+}
+
+const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b>
+    switch (state) {
+        case RESERVED:    return "RESERVED";
+        case BEFORE_1ST:  return "BEFORE_1ST";
+        case BEFORE_2ND:  return "BEFORE_2ND";
+        case PENDING:     return "PENDING";
+        case FIXED:       return "FIXED";
+        default:          return "UNKNOWN";
+    }
+}
+
+/* =================================================================
+ * Frame実装
+ * ================================================================= */
+
+void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
+    frame-&gt;frame_no = frame_no;
+    frame-&gt;first = 0;
+    frame-&gt;second = 0;
+    frame-&gt;spare_bonus = 0;
+    frame-&gt;strike_bonus = 0;
+    frame-&gt;total = 0;
+    frame-&gt;state = RESERVED; // <b class="conum">(4)</b>
+}
+
+static void frame_before_1st_proc(Frame *frame, EventType event, int pins) {
+    if (event == PINS) {
+        if (pins &lt; 0 || pins &gt; 10) {
+            printf("invalid pins: %d\n", pins);
+            return;
+        }
+        frame-&gt;first = pins;
+        if (frame_is_strike(frame)) {
+            frame-&gt;second = 0;
+            frame-&gt;state = PENDING;
+        } else {
+            frame-&gt;state = BEFORE_2ND;
+        }
+    } else {
+        printf("invalid event on %s.\n", frame_state_to_string(frame-&gt;state));
+    }
+}
+
+static void frame_before_2nd_proc(Frame *frame, EventType event, int pins) {
+    if (event == PINS) {
+        if (pins &lt; 0 || pins &gt; (10 - frame-&gt;first)) {
+            printf("invalid pins: %d\n", pins);
+            return;
+        }
+        frame-&gt;second = pins;
+        if (frame_is_spare(frame)) {
+            frame-&gt;state = PENDING;
+        } else {
+            frame-&gt;state = FIXED;
+        }
+    } else {
+        printf("invalid event on %s.\n", frame_state_to_string(frame-&gt;state));
+    }
+}
+
+void frame_action(Frame *frame, EventType event, int pins) {
+    switch (frame-&gt;state) { // <b class="conum">(1)</b>
+    case RESERVED: // <b class="conum">(2)</b>
+        if (event == SETUP) {
+            frame-&gt;state = BEFORE_1ST;
+        } else {
+            printf("invalid event is ignored.\n");
+        }
+        break;
+    case BEFORE_1ST: // <b class="conum">(3)</b>
+        frame_before_1st_proc(frame, event, pins);
+        break;
+    case BEFORE_2ND: // <b class="conum">(4)</b>
+        frame_before_2nd_proc(frame, event, pins);
+        break;
+    case PENDING: // <b class="conum">(5)</b>
+        if (event == DETERMINE) {
+            frame-&gt;state = FIXED;
+        }
+        break;
+    case FIXED:
+        printf("fixed.\n");
+        break;
+    }
+}
+
+int frame_score(const Frame *frame) {
+    return frame-&gt;first + frame-&gt;second + frame-&gt;spare_bonus + frame-&gt;strike_bonus;
+}
+
+bool frame_is_strike(const Frame *frame) {
+    return frame-&gt;first == 10;
+}
+
+bool frame_is_spare(const Frame *frame) {
+    return frame-&gt;first &lt; 10 &amp;&amp; (frame-&gt;first + frame-&gt;second) == 10;
+}
+
+bool frame_is_miss(const Frame *frame) {
+    return frame-&gt;first &lt; 10 &amp;&amp; frame-&gt;second == 0 &amp;&amp; frame-&gt;state == FIXED;
+}
+
+bool frame_is_gutter(const Frame *frame) {
+    return frame-&gt;first == 0;
+}
+
+bool frame_is_fixed(const Frame *frame) {
+    return frame-&gt;state == FIXED;
+}
+
+void frame_print(const Frame *frame) {
+    char total_str[8];
+    if (frame-&gt;state == FIXED) {
+        snprintf(total_str, sizeof(total_str), "%5d", frame-&gt;total);
+    } else {
+        snprintf(total_str, sizeof(total_str), "   .");
+    }
+    printf("|%2d|%3d|%3d|%5s|%11d|%11d|%12d|%11s|\n",
+           frame-&gt;frame_no, frame-&gt;first, frame-&gt;second, total_str,
+           frame_score(frame), frame-&gt;spare_bonus, frame-&gt;strike_bonus,
+           frame_state_to_string(frame-&gt;state));
+}
+
+/* =================================================================
+ * Score実装
+ * ================================================================= */
+
+void score_init(Score *score, const char *name) { // <b class="conum">(1)</b>
+    generate_id(score-&gt;id);
+    strncpy(score-&gt;player, name, MAX_NAME_LEN - 1);
+    score-&gt;player[MAX_NAME_LEN - 1] = '\0';
+    score-&gt;fno = 1;
+    score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(2)</b>
+
+    /* ダミーフレーム含めて初期化 (-1, 0はダミー) */
+    for (int i = 0; i &lt; MAX_FRAMES; i++) {
+        frame_init(&amp;score-&gt;frames[i], i - 1);
+    }
+
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); // <b class="conum">(3)</b>
+}
+
+int score_fno2idx(int fno) { // <b class="conum">(4)</b>
+    return fno + 1; /* frame number 1 =&gt; array index 2 (0 origin) */
+}
+
+Frame* score_frame(Score *score, int fno) {
+    return &amp;score-&gt;frames[score_fno2idx(fno)];
+}
+
+void score_go_next_frame(Score *score) { // <b class="conum">(5)</b>
+    score-&gt;fno += 1;
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0);
+}
+
+Frame* score_current(Score *score) { // <b class="conum">(6)</b>
+    return score_frame(score, score-&gt;fno);
+}
+
+Frame* score_prev(Score *score) { // <b class="conum">(7)</b>
+    return score_frame(score, score-&gt;fno - 1);
+}
+
+Frame* score_pprev(Score *score) { // <b class="conum">(8)</b>
+    return score_frame(score, score-&gt;fno - 2);
+}
+
+void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b>
+    Frame *prev = score_prev(score);
+    Frame *current = score_current(score);
+
+    if (!frame_is_spare(prev)) {
+        return;
+    }
+
+    prev-&gt;spare_bonus = current-&gt;first;
+    frame_action(prev, DETERMINE, 0);
+}
+
+void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)</b>
+    Frame *prev = score_prev(score);
+    Frame *pprev = score_pprev(score);
+    Frame *current = score_current(score);
+
+    if (!(frame_is_strike(prev) &amp;&amp; frame_is_strike(pprev))) {
+        return;
+    }
+
+    pprev-&gt;strike_bonus = prev-&gt;first + current-&gt;first;
+    frame_action(pprev, DETERMINE, 0);
+}
+
+void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)</b>
+    Frame *prev = score_prev(score);
+    Frame *current = score_current(score);
+
+    if (!frame_is_strike(prev)) {
+        return;
+    }
+
+    prev-&gt;strike_bonus = current-&gt;first + current-&gt;second;
+    frame_action(prev, DETERMINE, 0);
+}
+
+void score_update_total(Score *score) { // <b class="conum">(12)</b>
+    for (int i = 1; i &lt; MAX_FRAMES - 1; i++) {
+        score-&gt;frames[i + 1].total =
+            score-&gt;frames[i].total + frame_score(&amp;score-&gt;frames[i + 1]);
+    }
+}
+
+bool score_is_finished(const Score *score) { // <b class="conum">(13)</b>
+    return frame_is_fixed(score_frame((Score*)score, 10));
+}
+
+static void score_wait_for_1st_proc(Score *score, int pins) { // <b class="conum">(1)</b>
+    Frame *current = score_current(score);
+
+    frame_action(current, PINS, pins); // <b class="conum">(2)</b>
+    score_calc_spare_bonus_after_1st(score);
+    score_calc_strike_bonus_after_1st(score);
+    score_update_total(score);
+
+    if (score_is_finished(score)) { // <b class="conum">(3)</b>
+        score-&gt;state = FINISHED;
+    } else if (frame_is_strike(current)) { // <b class="conum">(4)</b>
+        score-&gt;state = WAIT_FOR_1ST;
+        score_go_next_frame(score);
+    } else {
+        score-&gt;state = WAIT_FOR_2ND; // <b class="conum">(5)</b>
+    }
+}
+
+static void score_wait_for_2nd_proc(Score *score, int pins) { // <b class="conum">(6)</b>
+    Frame *current = score_current(score);
+
+    frame_action(current, PINS, pins); // <b class="conum">(7)</b>
+    score_calc_strike_bonus_after_2nd(score);
+    score_update_total(score);
+
+    if (score_is_finished(score)) { // <b class="conum">(8)</b>
+        score-&gt;state = FINISHED;
+    } else {
+        score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(9)</b>
+        score_go_next_frame(score);
+    }
+}
+
+void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
+    switch (score-&gt;state) {
+        case WAIT_FOR_1ST:
+            score_wait_for_1st_proc(score, pins);
+            break;
+        case WAIT_FOR_2ND:
+            score_wait_for_2nd_proc(score, pins);
+            break;
+        case FINISHED:
+            printf("finished\n");
+            break;
+    }
+}
+
+void score_print(const Score *score) { // <b class="conum">(11)</b>
+    printf("Player:%s, Score(id: %s), Frame:%d\n",
+           score-&gt;player, score-&gt;id, score-&gt;fno);
+    printf("|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|\n");
+    for (int i = 0; i &lt; MAX_FRAMES; i++) {
+        frame_print(&amp;score-&gt;frames[i]);
+    }
+}
+
+/* =================================================================
+ * Game実装
+ * ================================================================= */
+
+void game_init(Game *game) {
+    generate_id(game-&gt;id); // <b class="conum">(1)</b>
+    game-&gt;turn = 0;
+    game-&gt;player_count = 0;
+}
+
+void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
+    if (game-&gt;player_count &gt;= MAX_PLAYERS) {
+        printf("Maximum number of players reached.\n");
+        return;
+    }
+    score_init(&amp;game-&gt;scores[game-&gt;player_count], name);
+    game-&gt;player_count++;
+}
+
+const char* game_turn_player_name(const Game *game) { // <b class="conum">(3)</b>
+    return game-&gt;scores[game-&gt;turn].player;
+}
+
+void game_go_next_turn(Game *game) { // <b class="conum">(4)</b>
+    game-&gt;turn = (game-&gt;turn + 1) % game-&gt;player_count;
+}
+
+void game_playing(Game *game, int score_index, int pins) { // <b class="conum">(5)</b>
+    Score *score = &amp;game-&gt;scores[score_index];
+    score_scoring(score, pins);
+
+    if (score-&gt;fno &gt; 10) {
+        if (score_is_finished(score)) { // <b class="conum">(6)</b>
+            game_go_next_turn(game);
+        }
+    } else if (score_current(score)-&gt;state == BEFORE_1ST) { // <b class="conum">(7)</b>
+        game_go_next_turn(game);
+    }
+}
+
+bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
+    for (int i = 0; i &lt; game-&gt;player_count; i++) {
+        if (!score_is_finished(&amp;game-&gt;scores[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void game_print(const Game *game) { // <b class="conum">(9)</b>
+    printf("Game(id:%s)\n", game-&gt;id);
+    for (int i = 0; i &lt; game-&gt;player_count; i++) {
+        score_print(&amp;game-&gt;scores[i]);
+    }
+}
+
+/* =================================================================
+ * ScoreSheet実装
+ * ================================================================= */
+
+void scoresheet_init(ScoreSheet *sheet, time_t date) { // <b class="conum">(1)</b>
+    generate_id(sheet-&gt;id);  // <b class="conum">(2)</b>
+    sheet-&gt;play_date = date;
+    sheet-&gt;game_count = 0;
+}
+
+void scoresheet_add_game(ScoreSheet *sheet, int games) { // <b class="conum">(3)</b>
+    for (int i = 0; i &lt; games &amp;&amp; sheet-&gt;game_count &lt; MAX_GAMES; i++) {
+        game_init(&amp;sheet-&gt;games[sheet-&gt;game_count]);
+        sheet-&gt;game_count++;
+    }
+}
+
+void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
+    char date_str[64];
+    struct tm *tm_info = localtime(&amp;sheet-&gt;play_date);
+    strftime(date_str, sizeof(date_str), "%Y-%m-%d %H:%M:%S", tm_info);
+    printf("Score Sheet Date: %s (id:%s)\n", date_str, sheet-&gt;id);
+}</code></pre>
+</div>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
 <div class="sect3">
 <h4 id="_テスト用のプログラムを追加する"><a class="anchor" href="#_テスト用のプログラムを追加する"></a>5.1.2. テスト用のプログラムを追加する</h4>
 <div class="paragraph">
-<p>作成したプログラムの末尾に、テストするためのプログラムを追加します（ <a href="#ruby_all_code02">[ruby_all_code02]</a> ）。
+<p>作成したプログラムの末尾に、テストするためのプログラムを追加します（ <a href="_program_test.html#c_all_code03">リスト 5.3</a> ）。
 実際にピン数を与えてスコアを作成しているのは「 <code>game.playing</code> 」の呼び出しです。
 このテストコードでは、ピン数のデータは、1ゲーム分のピン数をまとめています。
 しかし、スコアシートのプログラム本体はピン数を受け取るたびに動作するように作られているので、ピン数を1投球ずつ与える方法でも動かせます。</p>
+</div>
+<div id="c_all_code03" class="listingblock">
+<div class="title">リスト 5.3 <code>main.c</code></div>
+<div class="content">
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">/* main.c - ボーリングスコアシステムのメインプログラム */
+#include "bowling.h"
+
+int main(void) {
+    ScoreSheet sheet;
+    scoresheet_init(&amp;sheet, time(NULL)); // <b class="conum">(1)</b>
+
+    scoresheet_add_game(&amp;sheet, 1); // <b class="conum">(2)</b>
+    Game *game = &amp;sheet.games[sheet.game_count - 1]; // <b class="conum">(3)</b>
+
+    game_entry(game, "くぼあき"); // <b class="conum">(4)</b>
+    game_entry(game, "うえはら");
+
+    scoresheet_print(&amp;sheet); // <b class="conum">(5)</b>
+    printf("\n");
+
+    int game_records[2][30] = { // <b class="conum">(6)</b>
+        {7, 0, 5, 5, 10, 10, 5, 4, 10, 7, 3, 5, 4, 7, 3, 7, 3, 4},
+        {6, 3, 9, 0, 0, 3, 8, 2, 7, 3, 10, 9, 1, 8, 0, 10, 6, 3}
+    };
+    int record_index[2] = {0, 0}; // <b class="conum">(7)</b>
+
+    while (!game_is_finished(game)) { // <b class="conum">(8)</b>
+        printf("----------------------------------------\n");
+        printf("turn: %s\n", game_turn_player_name(game));
+
+        int score_index = game-&gt;turn; // <b class="conum">(9)</b>
+        int pins = game_records[score_index][record_index[score_index]]; // <b class="conum">(10)</b>
+        record_index[score_index]++;
+
+        printf("input pins: %d\n", pins);
+        game_playing(game, score_index, pins); // <b class="conum">(11)</b>
+
+        game_print(game); // <b class="conum">(12)</b>
+
+        printf("Press Enter to continue..."); // <b class="conum">(13)</b>
+        getchar();
+    }
+
+    printf("Game(id:%s) is finished.\n", game-&gt;id);
+    return 0;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>新しいスコアシートを作成する。</p>
+</li>
+<li>
+<p>作成したスコアシートにゲームを追加する。</p>
+</li>
+<li>
+<p>追加したゲームを選ぶ（ここでは最後のゲームを選ぶ方法をとった）。</p>
+</li>
+<li>
+<p>ゲームへプレーヤーがエントリーする。このプレーヤーのこのゲーム用のスコアが用意される。</p>
+</li>
+<li>
+<p>スコアシートの作成日付とIDの表示。</p>
+</li>
+<li>
+<p>テスト用データ。1行が1人の1ゲーム分のピン数のデータ。</p>
+</li>
+<li>
+<p>各プレイヤーの現在の投球インデックス。</p>
+</li>
+<li>
+<p>ゲームの終了まで繰り返し。</p>
+</li>
+<li>
+<p>turnは、そのゲーム内の何番目のプレーヤーか（ゲーム中の何番目のスコアか）を表している。このテストコードでは2人がエントリしているので、0→1→0→1 と繰り返す。</p>
+</li>
+<li>
+<p>現在のturnのプレーヤーのピン数のテストデータを先頭から1つずつ取り出す。</p>
+</li>
+<li>
+<p>現在のturnのプレーヤーのスコアにピン数を渡して、スコアへ反映する。</p>
+</li>
+<li>
+<p>現在のゲームの全体像を取得して表示する。</p>
+</li>
+<li>
+<p>ここで空の改行キーを入力してテストを進める。テストを1回ずつ止めて実行できる。この入力待ちをやめれば一括して実行できる。</p>
+</li>
+</ol>
 </div>
 </div>
 </div>
@@ -96,7 +676,17 @@
 <p>テスト用のプログラムも作成できたので、実行してみましょう。</p>
 </div>
 <div class="paragraph">
-<p>コマンドプロンプトを起動して（MacやLinuxならターミナルを起動して）、プログラムを実行します（ <a href="#ruby_all_code03">[ruby_all_code03]</a> ）。</p>
+<p>コマンドプロンプトを起動して（MacやLinuxならターミナルを起動して）、プログラムをビルドします（ <a href="_program_test.html#c_all_code04">リスト 5.4</a> ）。</p>
+</div>
+<div id="c_all_code04" class="listingblock">
+<div class="title">リスト 5.4 <code>bowling</code> プログラムをビルドする</div>
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="console">C:\Users\（演習用ディレクトリ）&gt;cd score
+C:\Users\（演習用ディレクトリ）&gt;\score&gt; make</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>ビルドできたら、実行しましょう（ <a href="_program_test.html#c_all_code05">リスト 5.5</a> ）。</p>
 </div>
 <div class="paragraph">
 <p>出力フォーマットは、左から「フレーム番号」「1投目のピン数」「2投目のピン数」「のべのトータル」「フレームのトータル」「スペアボーナス」「ストライクボーナス」「フレームの状態」です。</p>
@@ -104,12 +694,129 @@
 <div class="paragraph">
 <p>フレームの状態の変化を追ってみて、フレームのステートマシン図と対応していることを確認してみましょう。</p>
 </div>
+<div id="c_all_code05" class="listingblock">
+<div class="title">リスト 5.5 <code>bowling</code> プログラムを実行する</div>
+<div class="content">
+<pre class="prettyprint highlight"><code data-lang="console">C:\Users\（演習用ディレクトリ）&gt;\score&gt; ./bowling
+Score Sheet Date: 2022-02-26 02:08:21 +0900(id:0GG70gNRWtk) # <b class="conum">(1)</b>
+----------------------------------------
+turn: くぼあき # <b class="conum">(2)</b>
+input pins: 7 # <b class="conum">(3)</b>
+Game(id:zwBxlorJlog), # <b class="conum">(4)</b>
+Player:くぼあき, Score(id: q5rZ-vnFM1o), Frame:1, # <b class="conum">(5)</b>
+|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
+|-1|  0|  0|    .|          0|          0|           0|   RESERVED| # <b class="conum">(6)</b>
+| 0|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 1|  7|  0|    .|          7|          0|           0| BEFORE_2ND| # <b class="conum">(7)</b>
+| 2|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 3|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 4|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 5|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 6|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 7|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 8|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 9|  0|  0|    .|          0|          0|           0|   RESERVED|
+|10|  0|  0|    .|          0|          0|           0|   RESERVED|
+|11|  0|  0|    .|          0|          0|           0|   RESERVED|
+|12|  0|  0|    .|          0|          0|           0|   RESERVED|
+|13|  0|  0|    .|          0|          0|           0|   RESERVED|
+Player:うえはら, Score(id: plq9pFD6nSA), Frame:1,
+|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
+|-1|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 0|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 1|  0|  0|    .|          0|          0|           0| BEFORE_1ST|
+| 2|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 3|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 4|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 5|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 6|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 7|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 8|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 9|  0|  0|    .|          0|          0|           0|   RESERVED|
+|10|  0|  0|    .|          0|          0|           0|   RESERVED|
+|11|  0|  0|    .|          0|          0|           0|   RESERVED|
+|12|  0|  0|    .|          0|          0|           0|   RESERVED|
+|13|  0|  0|    .|          0|          0|           0|   RESERVED|
+
+(略）
+
+----------------------------------------
+turn: うえはら
+input pins: 3
+Game(id:zwBxlorJlog),
+Player:くぼあき, Score(id: q5rZ-vnFM1o), Frame:11,
+|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
+|-1|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 0|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 1|  7|  0|    7|          7|          0|           0|      FIXED|
+| 2|  5|  5|   27|         20|         10|           0|      FIXED|
+| 3| 10|  0|   52|         25|          0|          15|      FIXED|
+| 4| 10|  0|   71|         19|          0|           9|      FIXED|
+| 5|  5|  4|   80|          9|          0|           0|      FIXED|
+| 6| 10|  0|  100|         20|          0|          10|      FIXED|
+| 7|  7|  3|  115|         15|          5|           0|      FIXED|
+| 8|  5|  4|  124|          9|          0|           0|      FIXED|
+| 9|  7|  3|  141|         17|          7|           0|      FIXED|
+|10|  7|  3|  155|         14|          4|           0|      FIXED|
+|11|  4|  0|    .|          4|          0|           0| BEFORE_2ND| # <b class="conum">(8)</b>
+|12|  0|  0|    .|          0|          0|           0|   RESERVED|
+|13|  0|  0|    .|          0|          0|           0|   RESERVED|
+Player:うえはら, Score(id: plq9pFD6nSA), Frame:10,
+|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
+|-1|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 0|  0|  0|    .|          0|          0|           0|   RESERVED|
+| 1|  6|  3|    9|          9|          0|           0|      FIXED|
+| 2|  9|  0|   18|          9|          0|           0|      FIXED|
+| 3|  0|  3|   21|          3|          0|           0|      FIXED|
+| 4|  8|  2|   38|         17|          7|           0|      FIXED|
+| 5|  7|  3|   58|         20|         10|           0|      FIXED|
+| 6| 10|  0|   78|         20|          0|          10|      FIXED|
+| 7|  9|  1|   96|         18|          8|           0|      FIXED|
+| 8|  8|  0|  104|          8|          0|           0|      FIXED|
+| 9| 10|  0|  123|         19|          0|           9|      FIXED|
+|10|  6|  3|  132|          9|          0|           0|      FIXED|
+|11|  0|  0|    .|          0|          0|           0|   RESERVED|
+|12|  0|  0|    .|          0|          0|           0|   RESERVED|
+|13|  0|  0|    .|          0|          0|           0|   RESERVED|
+
+Game(id:zwBxlorJlog) is finished.
+C:\Users\（演習用ディレクトリ）&gt;\score&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>スコアシートの作成日付とIDの表示。</p>
+</li>
+<li>
+<p>どのプレーヤーのターンなのかを表示した。</p>
+</li>
+<li>
+<p>プログラムが受け取ったピン数。</p>
+</li>
+<li>
+<p>現在のゲームのID。</p>
+</li>
+<li>
+<p>プレーヤーとそのプレーヤーのスコアのID、現在のフレーム番号。</p>
+</li>
+<li>
+<p>前の前のフレームを無条件に扱うためのダミーフレーム。</p>
+</li>
+<li>
+<p>1投目が終わったので、フレームは2投目の投球前の状態。</p>
+</li>
+<li>
+<p>ここは2投目の投球前の状態だが、第10フレームの状態が「FIXED」なのでゲームは終了。</p>
+</li>
+</ol>
+</div>
 <div class="paragraph">
 <p>動作を確認できるよう、テストプログラムを実行した様子を収めた動画を用意しました。
 このテキストと一緒に配布している資料として <code>videos</code> フォルダに次のファイルを置いてあります。</p>
 </div>
 <div class="ulist">
-<div class="title">実行の様子を収めたビデオ（ <code>videos</code> フォルダにあります）</div>
+<div class="title">実行の様子を収めたビデオ（Ruby版のもの。 <code>videos</code> フォルダにあります）</div>
 <ul>
 <li>
 <p><code>score_rb_demo_win.mp4</code></p>
@@ -135,7 +842,7 @@
 </div>
 <div id="footer">
 <div id="footer-text">
-バージョン html 0786<br>
+バージョン html 0795<br>
 最終更新 2026-03-04 11:50:36 +0900
 </div>
 </div>

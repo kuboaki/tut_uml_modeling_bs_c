@@ -20,8 +20,8 @@
 <h1>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</h1>
 <div class="details">
 <span id="author" class="author">株式会社チェンジビジョン</span><br>
-<span id="revnumber">バージョン html 0786,</span>
-<span id="revdate">2026-03-05</span>
+<span id="revnumber">バージョン html 0795,</span>
+<span id="revdate">2026-03-09</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">目次</div>
@@ -80,8 +80,8 @@
 </div>
 <div id="frama_differences" class="sidebarblock">
 <div class="content">
-<div class="title">ゲームの進行状況によってフレームの表示は異なる</div>
 <div class="ulist">
+<div class="title">ゲームの進行状況によってフレームの表示は異なる</div>
 <ul>
 <li>
 <p>まだプレーしていないフレーム</p>
@@ -438,202 +438,265 @@
 <div class="sect3">
 <h4 id="_フレームの処理をプログラムに変換する"><a class="anchor" href="#_フレームの処理をプログラムに変換する"></a>4.2.4. フレームの処理をプログラムに変換する</h4>
 <div class="paragraph">
-<p>フレームのクラスとステートマシン図が作成できたので、Rubyのプログラムに変換してみましょう。
+<p>フレームのクラスとステートマシン図が作成できたので、C言語のプログラムに変換してみましょう。
 「<a href="_model_to_code_design.html">3</a>」で決めたルールにしたがって、モデルからコードへ変換します。</p>
 </div>
 <div class="paragraph">
-<p>まず、プログラムの初期化とアクションの部分は、 <a href="_behavior_design.html#ruby_frame_code01">リスト 4.1</a> のようになるでしょう。</p>
+<p>まず、クラス「Frame」の部分は、 <a href="_behavior_design.html#c_frame_code01">リスト 4.1</a> 、 <a href="_behavior_design.html#c_frame_code02">リスト 4.2</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_frame_code01" class="listingblock">
-<div class="title">リスト 4.1 【Ruby】score.rb(1)</div>
+<div id="c_frame_code01" class="listingblock">
+<div class="title">リスト 4.1 <code>bowling.h</code> (1)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># frozen_string_literal: true
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.h - ボーリングスコア管理システム */
+#ifndef BOWLING_H
+#define BOWLING_H
 
-require 'securerandom'
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;time.h&gt;
 
-# Frameは1フレーム分のピン数やボーナスを記録する
-class Frame
-  attr_reader :frame_no
-  attr_accessor :first, :second, :spare_bonus, :strike_bonus, :total, :state
+/* 定数定義 */
+#define MAX_FRAMES 15       /* ダミーフレーム含む配列サイズ */
+#define MAX_PLAYERS 10      /* 最大プレイヤー数 */
+#define MAX_GAMES 20        /* 最大ゲーム数 */
+#define MAX_NAME_LEN 64     /* プレイヤー名の最大長 */
+#define ID_LEN 12           /* ID文字列の長さ */
 
-  def initialize(frame_no)
-    @frame_no = frame_no
-    @first = 0
-    @second = 0
-    @spare_bonus = 0
-    @strike_bonus = 0
-    @total = 0
-    @state = :RESERVED <img src="images/icons/callouts/1.png" alt="1">
-  end
+/* フレームの状態 */
+typedef enum {
+    RESERVED,
+    BEFORE_1ST,
+    BEFORE_2ND,
+    PENDING,
+    FIXED
+} FrameState;
 
-  def action(event, pins=0)
-    case @state <img src="images/icons/callouts/2.png" alt="2">
-    when :RESERVED
-      case event
-      when :SETUP <img src="images/icons/callouts/3.png" alt="3">
-        @state = :BEFORE_1ST
-      else
-        puts "invalid event: #{event} is ignored."
-      end
-    when :BEFORE_1ST
-      before_1st_porc(event, pins) <img src="images/icons/callouts/4.png" alt="4">
-    when :BEFORE_2ND
-      before_2nd_proc(event, pins) <img src="images/icons/callouts/5.png" alt="5">
-    when :PENDING
-      case event
-      when :DETERMINE <img src="images/icons/callouts/6.png" alt="6">
-        @state = :FIXED
-      end
-    when :FIXED
-      puts 'fixed.'
-    end
-  end
-end</code></pre>
+/* イベントタイプ */
+typedef enum {
+    SETUP,
+    PINS,
+    DETERMINE
+} EventType;
+
+/* スコアの状態 */
+typedef enum {
+    WAIT_FOR_1ST,
+    WAIT_FOR_2ND,
+    FINISHED
+} ScoreState;
+
+/* Frame構造体: 1フレーム分のピン数やボーナスを記録 */
+typedef struct {
+    int frame_no;
+    int first;
+    int second;
+    int spare_bonus;
+    int strike_bonus;
+    int total;
+    FrameState state;
+} Frame;
+
+/* Frame関数 */
+void frame_init(Frame *frame, int frame_no);
+void frame_action(Frame *frame, EventType event, int pins);
+int frame_score(const Frame *frame);
+bool frame_is_strike(const Frame *frame);
+bool frame_is_spare(const Frame *frame);
+bool frame_is_miss(const Frame *frame);
+bool frame_is_gutter(const Frame *frame);
+bool frame_is_fixed(const Frame *frame);
+void frame_print(const Frame *frame);</code></pre>
+</div>
+</div>
+<div id="c_frame_code02" class="listingblock">
+<div class="title">リスト 4.2 <code>bowling.c</code> (1)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.c - ボーリングスコア管理システムの実装 */
+#include "bowling.h"
+
+void generate_id(char *id) { // <b class="conum">(1)</b>
+    static int counter = 0;
+    snprintf(id, ID_LEN, "ID%08d", counter++);
+}
+
+const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b>
+    switch (state) {
+        case RESERVED:    return "RESERVED";
+        case BEFORE_1ST:  return "BEFORE_1ST";
+        case BEFORE_2ND:  return "BEFORE_2ND";
+        case PENDING:     return "PENDING";
+        case FIXED:       return "FIXED";
+        default:          return "UNKNOWN";
+    }
+}
+
+/* =================================================================
+ * Frame実装
+ * ================================================================= */
+
+void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
+    frame-&gt;frame_no = frame_no;
+    frame-&gt;first = 0;
+    frame-&gt;second = 0;
+    frame-&gt;spare_bonus = 0;
+    frame-&gt;strike_bonus = 0;
+    frame-&gt;total = 0;
+    frame-&gt;state = RESERVED; // <b class="conum">(4)</b>
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>フレームの初期状態は「RESERVED」とする。状態はRubyのシンボルを使って表現する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>状態に応じて処理を分ける。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>「RESERVED」状態では「SETUP」イベントを受け取り、「BEFORE_1ST」状態へ遷移する。他のイベントが来たら無視する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>「BEFORE_1ST」状態では「PINS」イベントを待つ。詳細な処理は「before_1st_porc」メソッドに記載する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>「BEFORE_2ND」状態では「PINS」イベントを待つ。詳細な処理は「before_2nd_porc」メソッドに記載する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>「PENDING」状態では「DETERMINE」イベントを受け取り、「FIXED」状態へ遷移する。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>簡易的なIDを生成するユーティリティ関数。</p>
+</li>
+<li>
+<p>FrameStateを文字列に変換するユーティリティ関数。</p>
+</li>
+<li>
+<p>フレームの初期化処理。</p>
+</li>
+<li>
+<p>フレームの初期状態は「RESERVED」とする。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>ガード条件やアクションのメソッドは、 <a href="_behavior_design.html#ruby_frame_code02">リスト 4.2</a> のようになるでしょう。</p>
+<p>フレームごとのアクションの振り分けは、 <a href="_behavior_design.html#c_frame_code03">リスト 4.3</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_frame_code02" class="listingblock">
-<div class="title">リスト 4.2 【Ruby】score.rb(2)</div>
+<div id="c_frame_code03" class="listingblock">
+<div class="title">リスト 4.3 <code>bowling.c</code> (2)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># frozen_string_literal: true
-
-require 'securerandom'
-
-# Frameは1フレーム分のピン数やボーナスを記録する
-class Frame
-  # initialize、actionの定義がここにある
-
-  def frame_score <img src="images/icons/callouts/1.png" alt="1">
-    @first + @second + @spare_bonus + @strike_bonus
-  end
-
-  def strike? <img src="images/icons/callouts/2.png" alt="2">
-    @first == 10
-  end
-
-  def spare?
-    @first &lt; 10 &amp;&amp; (@first + @second) == 10
-  end
-
-  def miss?
-    @first &lt; 10 &amp;&amp; @second.zero &amp;&amp; @state == :FIXED
-  end
-
-  def gutter?
-    @first.zero
-  end
-
-  def fixed? <img src="images/icons/callouts/3.png" alt="3">
-    @state == :FIXED
-  end
-
-  def to_s <img src="images/icons/callouts/4.png" alt="4">
-    total = if @state == :FIXED
-              @total
-            else
-              '   .'
-            end
-    format '|%2d|%3s|%3s|%5s|%11d|%11d|%12d|%11s|',
-           @frame_no, @first, @second, total, frame_score,
-           @spare_bonus, @strike_bonus, @state
-  end
-
-  private <img src="images/icons/callouts/5.png" alt="5">
-
-  def before_1st_porc(evt, pins) <img src="images/icons/callouts/6.png" alt="6">
-    case evt
-    when :PINS
-      puts "invalid pins: #{pins}" if pins.negative? || pins &gt; 10
-      @first = pins
-      @state = if strike?
-                 @second = 0
-                 :PENDING
-               else
-                 :BEFORE_2ND
-               end
-    else
-      puts "invalid event: #{evt} on #{@state}."
-    end
-  end
-
-  def before_2nd_proc(evt, pins) <img src="images/icons/callouts/7.png" alt="7">
-    case evt
-    when :PINS
-      puts "invalid pins: #{pins}" if pins.negative? || pins &gt; (10 - @first)
-      @second = pins
-      @state = if spare?
-                 :PENDING
-               else
-                 :FIXED
-               end
-    else
-      puts "invalid event: #{evt} on #{@state}."
-    end
-  end
-end</code></pre>
+<pre class="prettyprint highlight linenums:69"><code data-lang="c">void frame_action(Frame *frame, EventType event, int pins) {
+    switch (frame-&gt;state) { // <b class="conum">(1)</b>
+    case RESERVED: // <b class="conum">(2)</b>
+        if (event == SETUP) {
+            frame-&gt;state = BEFORE_1ST;
+        } else {
+            printf("invalid event is ignored.\n");
+        }
+        break;
+    case BEFORE_1ST: // <b class="conum">(3)</b>
+        frame_before_1st_proc(frame, event, pins);
+        break;
+    case BEFORE_2ND: // <b class="conum">(4)</b>
+        frame_before_2nd_proc(frame, event, pins);
+        break;
+    case PENDING: // <b class="conum">(5)</b>
+        if (event == DETERMINE) {
+            frame-&gt;state = FIXED;
+        }
+        break;
+    case FIXED:
+        printf("fixed.\n");
+        break;
+    }
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>フレームのスコアを計算するメソッド</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>ストライクかどうか判定するガード条件用のメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>フレームのスコアが確定したか調べるメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>「Frame」クラスのインスタンスを文字列化するメソッド。呼び出し時点の「Frame」クラスが保持するインスタン変数の値を出力するのに使う。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>これ以降のメソッドはプライベート。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>「1投目の投球を待っている」状態を担当するメソッド。イベント「PINS」を受け取り、1投目のピン数に保存する。その後ストライクかどうか調べ、次の状態へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>「2投目の投球を待っている」状態を担当するメソッド。イベント「PINS」を受け取り、2投目のピン数に保存する。その後スペアかどうか調べ、次の状態へ遷移する。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>フレームの状態に応じて処理を分ける。</p>
+</li>
+<li>
+<p>「RESERVED」状態では「SETUP」イベントを受け取り、「BEFORE_1ST」状態へ遷移する。他のイベントが来たら無視する。</p>
+</li>
+<li>
+<p>「BEFORE_1ST」状態では「PINS」イベントを待つ。詳細な処理は「before_1st_porc」関数に記載する。</p>
+</li>
+<li>
+<p>「BEFORE_2ND」状態では「PINS」イベントを待つ。詳細な処理は「before_2nd_porc」関数に記載する。</p>
+</li>
+<li>
+<p>「PENDING」状態では「DETERMINE」イベントを受け取り、「FIXED」状態へ遷移する。</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>アクションやガード条件判定用の関数メソッドは、 <a href="_behavior_design.html#c_frame_code04">リスト 4.4</a> 、  <a href="_behavior_design.html#c_frame_code05">リスト 4.5</a> のようになるでしょう。</p>
+</div>
+<div id="c_frame_code04" class="listingblock">
+<div class="title">リスト 4.4 <code>bowling.c</code> (3)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:34"><code data-lang="c">static void frame_before_1st_proc(Frame *frame, EventType event, int pins) {
+    if (event == PINS) {
+        if (pins &lt; 0 || pins &gt; 10) {
+            printf("invalid pins: %d\n", pins);
+            return;
+        }
+        frame-&gt;first = pins;
+        if (frame_is_strike(frame)) {
+            frame-&gt;second = 0;
+            frame-&gt;state = PENDING;
+        } else {
+            frame-&gt;state = BEFORE_2ND;
+        }
+    } else {
+        printf("invalid event on %s.\n", frame_state_to_string(frame-&gt;state));
+    }
+}
+
+static void frame_before_2nd_proc(Frame *frame, EventType event, int pins) {
+    if (event == PINS) {
+        if (pins &lt; 0 || pins &gt; (10 - frame-&gt;first)) {
+            printf("invalid pins: %d\n", pins);
+            return;
+        }
+        frame-&gt;second = pins;
+        if (frame_is_spare(frame)) {
+            frame-&gt;state = PENDING;
+        } else {
+            frame-&gt;state = FIXED;
+        }
+    } else {
+        printf("invalid event on %s.\n", frame_state_to_string(frame-&gt;state));
+    }
+}</code></pre>
+</div>
+</div>
+<div id="c_frame_code05" class="listingblock">
+<div class="title">リスト 4.5 <code>bowling.c</code> (4)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:95"><code data-lang="c">int frame_score(const Frame *frame) {
+    return frame-&gt;first + frame-&gt;second + frame-&gt;spare_bonus + frame-&gt;strike_bonus;
+}
+
+bool frame_is_strike(const Frame *frame) {
+    return frame-&gt;first == 10;
+}
+
+bool frame_is_spare(const Frame *frame) {
+    return frame-&gt;first &lt; 10 &amp;&amp; (frame-&gt;first + frame-&gt;second) == 10;
+}
+
+bool frame_is_miss(const Frame *frame) {
+    return frame-&gt;first &lt; 10 &amp;&amp; frame-&gt;second == 0 &amp;&amp; frame-&gt;state == FIXED;
+}
+
+bool frame_is_gutter(const Frame *frame) {
+    return frame-&gt;first == 0;
+}
+
+bool frame_is_fixed(const Frame *frame) {
+    return frame-&gt;state == FIXED;
+}
+
+void frame_print(const Frame *frame) {
+    char total_str[8];
+    if (frame-&gt;state == FIXED) {
+        snprintf(total_str, sizeof(total_str), "%5d", frame-&gt;total);
+    } else {
+        snprintf(total_str, sizeof(total_str), "   .");
+    }
+    printf("|%2d|%3d|%3d|%5s|%11d|%11d|%12d|%11s|\n",
+           frame-&gt;frame_no, frame-&gt;first, frame-&gt;second, total_str,
+           frame_score(frame), frame-&gt;spare_bonus, frame-&gt;strike_bonus,
+           frame_state_to_string(frame-&gt;state));
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -723,7 +786,7 @@ end</code></pre>
 それでは、フレームの集まりであるスコアについて、どのような処理をすればよいのか検討しましょう。</p>
 </div>
 <div class="sect3">
-<h4 id="_scoreクラスにステートマシン図を追加する"><a class="anchor" href="#_scoreクラスにステートマシン図を追加する"></a>4.4.1. 「Score」クラスにステートマシン図を追加する</h4>
+<h4 id="_scoreクラスにステートマシン図を追加する"><a class="anchor" href="#_scoreクラスにステートマシン図を追加する"></a>4.4.1. Scoreクラスにステートマシン図を追加する</h4>
 <div class="paragraph">
 <p>「Frame」クラスにステートマシン図を追加したのと同じ手順で、「Score」クラスにステートマシン図を追加します（ <a href="_behavior_design.html#add_score_stm00">図 4.18</a> ）。</p>
 </div>
@@ -878,13 +941,13 @@ end</code></pre>
 <p>「ゲーム終了か判定する」メソッド「finished?」を追加する。</p>
 </li>
 <li>
-<p>「1投目の後のスペアのボーナスを計算する」メソッド「calc_spare_bonus_after_1st」を追加する。</p>
+<p>「1投目の後のスペアのボーナスを計算する」 メソッド 「calc_spare_bonus_after_1st」を追加する。</p>
 </li>
 <li>
-<p>「1投目の後のストライクのボーナスを計算する」メソッド「calc_strike_bonus_after_1st」を追加する。</p>
+<p>「1投目の後のストライクのボーナスを計算する」メソッド 「calc_strike_bonus_after_1st」を追加する。</p>
 </li>
 <li>
-<p>「2投目の後のストライクのボーナスを計算する」メソッド「calc_strike_bonus_after_2st」を追加する。</p>
+<p>「2投目の後のストライクのボーナスを計算する」メソッド 「calc_strike_bonus_after_2st」を追加する。</p>
 </li>
 <li>
 <p>「のべのトータルを更新する」メソッド「update_total」を追加する。</p>
@@ -923,7 +986,7 @@ end</code></pre>
 <table>
 <tr>
 <td class="icon">
-<img src="images/icons/tip.png" alt="ヒント">
+<div class="title">ヒント</div>
 </td>
 <td class="content">
 ノート内の文章を編集するときは、ノートを選択した状態でプロパティーを使って編集すると、改行が入力しやすくなります。
@@ -935,285 +998,271 @@ end</code></pre>
 <div class="sect3">
 <h4 id="_スコアの処理をプログラムに変換する"><a class="anchor" href="#_スコアの処理をプログラムに変換する"></a>4.4.4. スコアの処理をプログラムに変換する</h4>
 <div class="paragraph">
-<p>スコアのクラスとステートマシン図が作成できたので、Rubyのプログラムに変換してみましょう。
-変換したプログラムの初期化やユーティリティメソッドの部分は、 <a href="_behavior_design.html#ruby_score_code01">リスト 4.3</a> のようになるでしょう。</p>
+<p>スコアのクラスとステートマシン図が作成できたので、C言語のプログラムに変換してみましょう。
+変換したプログラムの初期化やユーティリティメソッドの部分は、 <a href="_behavior_design.html#c_score_code01">リスト 4.6</a> 、 <a href="_behavior_design.html#c_score_code02">リスト 4.7</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_score_code01" class="listingblock">
-<div class="title">リスト 4.3 【Ruby】score.rb(3)</div>
+<div id="c_score_code01" class="listingblock">
+<div class="title">リスト 4.6 <code>bowling.h</code> (2)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># frozen_string_literal: true
+<pre class="prettyprint highlight linenums:63"><code data-lang="c">/* Score構造体: 各人の10フレーム分のスコアを記録 */
+typedef struct {
+    char id[ID_LEN];
+    char player[MAX_NAME_LEN];
+    int fno;
+    Frame frames[MAX_FRAMES];
+    ScoreState state;
+} Score;
 
-require 'securerandom' <img src="images/icons/callouts/1.png" alt="1">
+/* Score関数 */
+void score_init(Score *score, const char *name);
+int score_fno2idx(int fno);
+Frame* score_frame(Score *score, int fno);
+void score_go_next_frame(Score *score);
+Frame* score_current(Score *score);
+Frame* score_prev(Score *score);
+Frame* score_pprev(Score *score);
+void score_calc_spare_bonus_after_1st(Score *score);
+void score_calc_strike_bonus_after_1st(Score *score);
+void score_calc_strike_bonus_after_2nd(Score *score);
+void score_update_total(Score *score);
+bool score_is_finished(const Score *score);
+void score_scoring(Score *score, int pins);
+void score_print(const Score *score);</code></pre>
+</div>
+</div>
+<div id="c_score_code02" class="listingblock">
+<div class="title">リスト 4.7 <code>bowling.c</code> (5)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:136"><code data-lang="c">void score_init(Score *score, const char *name) { // <b class="conum">(1)</b>
+    generate_id(score-&gt;id);
+    strncpy(score-&gt;player, name, MAX_NAME_LEN - 1);
+    score-&gt;player[MAX_NAME_LEN - 1] = '\0';
+    score-&gt;fno = 1;
+    score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(2)</b>
 
-# Frameクラスの定義がここにある
+    /* ダミーフレーム含めて初期化 (-1, 0はダミー) */
+    for (int i = 0; i &lt; MAX_FRAMES; i++) {
+        frame_init(&amp;score-&gt;frames[i], i - 1);
+    }
 
-# スコアは各人の10フレーム分のスコアを記録する
-class Score <img src="images/icons/callouts/2.png" alt="2">
-  attr_accessor :id, :player, :fno, :frames, :state
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); // <b class="conum">(3)</b>
+}
 
-  def initialize(name)
-    @id = SecureRandom.urlsafe_base64(8) <img src="images/icons/callouts/3.png" alt="3">
-    @player = name
-    @fno = 1
-    @frames = []
-    (-1..13).each do |fno| # (-1, 0) are dummy frame <img src="images/icons/callouts/4.png" alt="4">
-      @frames.append Frame.new(fno)
-    end
-    @state = :WAIT_FOR_1ST <img src="images/icons/callouts/5.png" alt="5">
-    @frames[fno2idx(@fno)].action(:SETUP) <img src="images/icons/callouts/6.png" alt="6">
-  end
+int score_fno2idx(int fno) { // <b class="conum">(4)</b>
+    return fno + 1; /* frame number 1 =&gt; array index 2 (0 origin) */
+}
 
-  def fno2idx(fno) <img src="images/icons/callouts/7.png" alt="7">
-    fno + 1 # frame number 1 =&gt; array index 3 (0 origin).
-  end
+Frame* score_frame(Score *score, int fno) {
+    return &amp;score-&gt;frames[score_fno2idx(fno)];
+}
 
-  def frame(fno)
-    @frames[fno2idx(fno)] # return index on @frams at frame number.
-  end
+void score_go_next_frame(Score *score) { // <b class="conum">(5)</b>
+    score-&gt;fno += 1;
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0);
+}
 
-  def go_next_frame <img src="images/icons/callouts/8.png" alt="8">
-    @fno += 1
-    @frames[fno2idx(fno)].action(:SETUP)
-  end
+Frame* score_current(Score *score) { // <b class="conum">(6)</b>
+    return score_frame(score, score-&gt;fno);
+}
 
-  def current <img src="images/icons/callouts/9.png" alt="9">
-    frame(@fno)
-  end
-end</code></pre>
+Frame* score_prev(Score *score) { // <b class="conum">(7)</b>
+    return score_frame(score, score-&gt;fno - 1);
+}
+
+Frame* score_pprev(Score *score) { // <b class="conum">(8)</b>
+    return score_frame(score, score-&gt;fno - 2);
+}
+
+void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b>
+    Frame *prev = score_prev(score);
+    Frame *current = score_current(score);
+
+    if (!frame_is_spare(prev)) {
+        return;
+    }
+
+    prev-&gt;spare_bonus = current-&gt;first;
+    frame_action(prev, DETERMINE, 0);
+}
+
+void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)</b>
+    Frame *prev = score_prev(score);
+    Frame *pprev = score_pprev(score);
+    Frame *current = score_current(score);
+
+    if (!(frame_is_strike(prev) &amp;&amp; frame_is_strike(pprev))) {
+        return;
+    }
+
+    pprev-&gt;strike_bonus = prev-&gt;first + current-&gt;first;
+    frame_action(pprev, DETERMINE, 0);
+}
+
+void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)</b>
+    Frame *prev = score_prev(score);
+    Frame *current = score_current(score);
+
+    if (!frame_is_strike(prev)) {
+        return;
+    }
+
+    prev-&gt;strike_bonus = current-&gt;first + current-&gt;second;
+    frame_action(prev, DETERMINE, 0);
+}
+
+void score_update_total(Score *score) { // <b class="conum">(12)</b>
+    for (int i = 1; i &lt; MAX_FRAMES - 1; i++) {
+        score-&gt;frames[i + 1].total =
+            score-&gt;frames[i].total + frame_score(&amp;score-&gt;frames[i + 1]);
+    }
+}
+
+bool score_is_finished(const Score *score) { // <b class="conum">(13)</b>
+    return frame_is_fixed(score_frame((Score*)score, 10));</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>安全なIDを生成するためのライブラリをインポートした。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>「Score」クラスの定義のはじまり。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>スコアのインスタンスにIDをつけておく。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>「Frame」のインスタンスの作成。クラス図では、「Score」から「Frame」へのコンポジションとして表されている部分。設計上は12個だが、サービスフレームで「次」を参照する場面、第1フレームで「前のフレーム」「前の前のフレーム」を参照する場面で参照するダミーのフレームを追加している。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>スコアの最初の状態を「WAIT_FOR_1ST」にする。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>第1フレームへ「SETUP」イベントを送る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>フレーム番号とフレームの配列のインデックスを対応づけるメソッド（ダミーのフレームを第1フレームの前に追加したためのオフセット）。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/8.png" alt="8"></td>
-<td>現在のフレームを「次のフレームへ進める」メソッド。このメソッドでは、次のフレームに「SETUP」イベントを送る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/9.png" alt="9"></td>
-<td>「現在のフレーム」を参照するためのメソッド。クラス図では関連端名が「current」の「Frame」クラスへの関連で表されている。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>「Frame」のインスタンスの作成。クラス図では、「Score」から「Frame」へのコンポジションとして表されている部分。設計上は12個だが、サービスフレームで「次」を参照する場面、第1フレームで「前のフレーム」「前の前のフレーム」を参照する場面で参照するダミーのフレームを追加している。</p>
+</li>
+<li>
+<p>スコアの最初の状態を「WAIT_FOR_1ST」にする。</p>
+</li>
+<li>
+<p>第1フレームへ「SETUP」イベントを送る。</p>
+</li>
+<li>
+<p>フレーム番号とフレームの配列のインデックスを対応づける関数（ダミーのフレームを第1フレームの前に追加したためのオフセット）。</p>
+</li>
+<li>
+<p>現在のフレームを「次のフレームへ進める」関数。この関数では、次のフレームに「SETUP」イベントを送る。</p>
+</li>
+<li>
+<p>「現在のフレーム」を参照するための関数。クラス図では関連端名が「current」の「Frame」クラスへの関連で表されている。</p>
+</li>
+<li>
+<p>ボーナス計算で使う、「前のフレーム」を得る関数。</p>
+</li>
+<li>
+<p>ボーナス計算で使う、「前の前のフレーム」を得る関数。</p>
+</li>
+<li>
+<p>1投目の後のスペアボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</p>
+</li>
+<li>
+<p>1投目の後のストライクボーナスを計算する関数。前の前のフレームからストライクが続いていた場合、ここでスコアが確定するので、前の前のフレームへ「DETERMINE」イベントを送る。</p>
+</li>
+<li>
+<p>2投目の後のストライクボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</p>
+</li>
+<li>
+<p>「のべのトータル」を更新する関数。each_consは、配列から指定した数ずつ要素を取り出す関数。</p>
+</li>
+<li>
+<p>「ゲーム終了」の判定用の関数。サービスフレームの検討結果から、第10フレームが「FIXED」になれば、そのゲームは終了とみなせる。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>ボーナス計算やトータル計算のメソッドは <a href="_behavior_design.html#ruby_score_code02">リスト 4.4</a> のようになるでしょう。</p>
+<p>ボーナス計算やトータル計算のメソッドは <a href="_behavior_design.html#c_score_code03">リスト 4.8</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_score_code02" class="listingblock">
-<div class="title">リスト 4.4 【Ruby】score.rb(4)</div>
+<div id="c_score_code03" class="listingblock">
+<div class="title">リスト 4.8 <code>bowling.c</code> (6)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># Frameクラスの定義やそれ以前のコードがここにある
+<pre class="prettyprint highlight linenums:224"><code data-lang="c">static void score_wait_for_1st_proc(Score *score, int pins) { // <b class="conum">(1)</b>
+    Frame *current = score_current(score);
 
-# スコアは各人の10フレーム分のスコアを記録する
-class Score
-  # アクセサーの定義がここにある
-  # initialize、fno2idx、frame、go_next_frame、currentメソッドの定義がここにある
+    frame_action(current, PINS, pins); // <b class="conum">(2)</b>
+    score_calc_spare_bonus_after_1st(score);
+    score_calc_strike_bonus_after_1st(score);
+    score_update_total(score);
 
-  def prev <img src="images/icons/callouts/1.png" alt="1">
-    frame(@fno - 1)
-  end
+    if (score_is_finished(score)) { // <b class="conum">(3)</b>
+        score-&gt;state = FINISHED;
+    } else if (frame_is_strike(current)) { // <b class="conum">(4)</b>
+        score-&gt;state = WAIT_FOR_1ST;
+        score_go_next_frame(score);
+    } else {
+        score-&gt;state = WAIT_FOR_2ND; // <b class="conum">(5)</b>
+    }
+}
 
-  def pprev <img src="images/icons/callouts/2.png" alt="2">
-    frame(@fno - 2)
-  end
+static void score_wait_for_2nd_proc(Score *score, int pins) { // <b class="conum">(6)</b>
+    Frame *current = score_current(score);
 
-  def calc_spare_bonus_after_1st <img src="images/icons/callouts/3.png" alt="3">
-    return unless prev.spare?
+    frame_action(current, PINS, pins); // <b class="conum">(7)</b>
+    score_calc_strike_bonus_after_2nd(score);
+    score_update_total(score);
 
-    prev.spare_bonus = current.first
-    prev.action(:DETERMINE)
-  end
+    if (score_is_finished(score)) { // <b class="conum">(8)</b>
+        score-&gt;state = FINISHED;
+    } else {
+        score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(9)</b>
+        score_go_next_frame(score);
+    }
+}
 
-  def calc_strike_bonus_after_1st <img src="images/icons/callouts/4.png" alt="4">
-    return unless prev.strike? &amp;&amp; pprev.strike?
+void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
+    switch (score-&gt;state) {
+        case WAIT_FOR_1ST:
+            score_wait_for_1st_proc(score, pins);
+            break;
+        case WAIT_FOR_2ND:
+            score_wait_for_2nd_proc(score, pins);
+            break;
+        case FINISHED:
+            printf("finished\n");
+            break;
+    }
+}
 
-    pprev.strike_bonus = prev.first + current.first
-    pprev.action(:DETERMINE)
-  end
-
-  def calc_strike_bonus_after_2nd <img src="images/icons/callouts/5.png" alt="5">
-    return unless prev.strike?
-
-    prev.strike_bonus = current.first + current.second
-    prev.action(:DETERMINE)
-  end
-
-  def update_total <img src="images/icons/callouts/6.png" alt="6">
-    @frames.each_cons(2) do |prev, cur|
-      cur.total = prev.total + cur.frame_score
-    end
-  end
-
-  def finished? <img src="images/icons/callouts/7.png" alt="7">
-    frame(10).fixed?
-  end
-end</code></pre>
+void score_print(const Score *score) { // <b class="conum">(11)</b>
+    printf("Player:%s, Score(id: %s), Frame:%d\n",
+           score-&gt;player, score-&gt;id, score-&gt;fno);
+    printf("|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|\n");
+    for (int i = 0; i &lt; MAX_FRAMES; i++) {
+        frame_print(&amp;score-&gt;frames[i]);
+    }
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>ボーナス計算で使う、「前のフレーム」を得るメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>ボーナス計算で使う、「前の前のフレーム」を得るメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>1投目の後のスペアボーナスを計算するメソッド。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>1投目の後のストライクボーナスを計算するメソッド。前の前のフレームからストライクが続いていた場合、ここでスコアが確定するので、前の前のフレームへ「DETERMINE」イベントを送る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>2投目の後のストライクボーナスを計算するメソッド。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>「のべのトータル」を更新するメソッド。each_consは、配列から指定した数ずつ要素を取り出すメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>「ゲーム終了」の判定用のメソッド。サービスフレームの検討結果から、第10フレームが「FIXED」になれば、そのゲームは終了とみなせる。</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>そして、ステートマシン図で表した、実際にゲームの進行に合わせてスコアを記録する処理をするメソッドは <a href="_behavior_design.html#ruby_score_code03">リスト 4.5</a> のようになるでしょう。</p>
-</div>
-<div id="ruby_score_code03" class="listingblock">
-<div class="title">リスト 4.5 【Ruby】score.rb(5)</div>
-<div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># Frameクラスの定義やそれ以前のコードがここにある
-
-# スコアは各人の10フレーム分のスコアを記録する
-class Score
-  # アクセサーの定義がここにある
-  # initializeからfinished?までのメソッドの定義がここにある
-
-  def wait_for_1st_proc(pins) <img src="images/icons/callouts/1.png" alt="1">
-    current.action(:PINS, pins) <img src="images/icons/callouts/2.png" alt="2">
-    calc_spare_bonus_after_1st
-    calc_strike_bonus_after_1st
-    update_total
-    if finished? <img src="images/icons/callouts/3.png" alt="3">
-      @state = :FINISHED
-    elsif current.strike? <img src="images/icons/callouts/4.png" alt="4">
-      @state = :WAIT_FOR_1ST
-      go_next_frame
-    else <img src="images/icons/callouts/5.png" alt="5">
-      @state = :WAIT_FOR_2ND
-    end
-  end
-
-  def wait_for_2nd_proc(pins) <img src="images/icons/callouts/6.png" alt="6">
-    current.action(:PINS, pins) <img src="images/icons/callouts/7.png" alt="7">
-    calc_strike_bonus_after_2nd
-    update_total
-    if finished? <img src="images/icons/callouts/8.png" alt="8">
-      @state = :FINISHED
-    else <img src="images/icons/callouts/9.png" alt="9">
-      @state = :WAIT_FOR_1ST
-      go_next_frame
-    end
-  end
-
-  def scoring(pins) <img src="images/icons/callouts/10.png" alt="10">
-    case @state
-    when :WAIT_FOR_1ST
-      wait_for_1st_proc(pins)
-    when :WAIT_FOR_2ND
-      wait_for_2nd_proc(pins)
-    when :FINISHED
-      puts 'finished'
-    end
-  end
-
-  def to_s <img src="images/icons/callouts/11.png" alt="11">
-    "Player:#{@player}, Score(id: #{@id}), Frame:#{@fno},
-|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
-#{@frames.join("\n")}"
-  end
-end</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>「WAIT_FOR_1ST」状態のときの状態遷移のメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>「ストライクだった」の場合は、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>それ以外のときは2投目を待つので、「WAIT_FOR_2ND」へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>「WAIT_FOR_2ND」状態のときの状態遷移のメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/8.png" alt="8"></td>
-<td>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/9.png" alt="9"></td>
-<td>それ以外のときは、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/10.png" alt="10"></td>
-<td>スコアを記録するステートマシン図の振る舞いを担当するメソッド。状態に応じてそれぞれの状態用のメソッドを呼び出す。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/11.png" alt="11"></td>
-<td>「スコア」クラスのインスタンスの内容（内包するフレームも含む）を文字列化するメソッド。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>「WAIT_FOR_1ST」状態のときの状態遷移のメソッド。</p>
+</li>
+<li>
+<p>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</p>
+</li>
+<li>
+<p>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</p>
+</li>
+<li>
+<p>「ストライクだった」の場合は、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</p>
+</li>
+<li>
+<p>それ以外のときは2投目を待つので、「WAIT_FOR_2ND」へ遷移する。</p>
+</li>
+<li>
+<p>「WAIT_FOR_2ND」状態のときの状態遷移のメソッド。</p>
+</li>
+<li>
+<p>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</p>
+</li>
+<li>
+<p>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</p>
+</li>
+<li>
+<p>それ以外のときは、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</p>
+</li>
+<li>
+<p>スコアを記録するステートマシン図の振る舞いを担当するメソッド。状態に応じてそれぞれの状態用のメソッドを呼び出す。</p>
+</li>
+<li>
+<p>「スコア」クラスのインスタンスの内容（内包するフレームも含む）を文字列化するメソッド。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>これで、フレームとスコアを、それぞれのステートマシン図で表した振る舞いに合わせて動作するプログラムに変換できました。</p>
@@ -1247,8 +1296,8 @@ end</code></pre>
 </div>
 <div id="game_steps00" class="sidebarblock">
 <div class="content">
-<div class="title">ボウリングのゲームを進める手順（ヨーロピアン方式）</div>
 <div class="olist arabic">
+<div class="title">ボウリングのゲームを進める手順（ヨーロピアン方式）</div>
 <ol class="arabic">
 <li>
 <p>スコアシートに参加するプレーヤー名を書く（エントリーする）。</p>
@@ -1267,93 +1316,115 @@ end</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>この方式に合わせてスコアを記録する処理をする「Game」クラスは、 <a href="_behavior_design.html#ruby_game_code01">リスト 4.6</a> のようになるでしょう。</p>
+<p>この方式に合わせてスコアを記録する処理をする「Game」クラスは、 <a href="_behavior_design.html#c_game_code01">リスト 4.9</a> 、  <a href="_behavior_design.html#c_game_code02">リスト 4.10</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_game_code01" class="listingblock">
-<div class="title">リスト 4.6 【Ruby】score.rb(6)</div>
+<div id="c_game_code01" class="listingblock">
+<div class="title">リスト 4.9 <code>bowling.h</code> (3)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># FrameクラスとScoreクラスの定義やそれ以前のコードがここにある
+<pre class="prettyprint highlight linenums:88"><code data-lang="c">/* Game構造体: 複数名の1ゲーム分のスコアのセット */
+typedef struct {
+    char id[ID_LEN];
+    int turn;
+    Score scores[MAX_PLAYERS];
+    int player_count;
+} Game;
 
-# Gameクラスは複数名の1ゲーム分のスコアのセットを構成する
-class Game
-  attr_reader :id, :turn, :scores
+/* Game関数 */
+void game_init(Game *game);
+void game_entry(Game *game, const char *name);
+const char* game_turn_player_name(const Game *game);
+void game_go_next_turn(Game *game);
+void game_playing(Game *game, int score_index, int pins);
+bool game_is_finished(const Game *game);
+void game_print(const Game *game);</code></pre>
+</div>
+</div>
+<div id="c_game_code02" class="listingblock">
+<div class="title">リスト 4.10 <code>bowling.c</code> (7)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:284"><code data-lang="c">void game_init(Game *game) {
+    generate_id(game-&gt;id); // <b class="conum">(1)</b>
+    game-&gt;turn = 0;
+    game-&gt;player_count = 0;
+}
 
-  def initialize
-    @id = SecureRandom.urlsafe_base64(8) <img src="images/icons/callouts/1.png" alt="1">
-    @turn = 0
-    @scores = []
-  end
+void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
+    if (game-&gt;player_count &gt;= MAX_PLAYERS) {
+        printf("Maximum number of players reached.\n");
+        return;
+    }
+    score_init(&amp;game-&gt;scores[game-&gt;player_count], name);
+    game-&gt;player_count++;
+}
 
-  def entry(name = 'unknown') <img src="images/icons/callouts/2.png" alt="2">
-    @scores.append(Score.new(name))
-  end
+const char* game_turn_player_name(const Game *game) { // <b class="conum">(3)</b>
+    return game-&gt;scores[game-&gt;turn].player;
+}
 
-  def turn_player_name <img src="images/icons/callouts/3.png" alt="3">
-    @scores[@turn].player
-  end
+void game_go_next_turn(Game *game) { // <b class="conum">(4)</b>
+    game-&gt;turn = (game-&gt;turn + 1) % game-&gt;player_count;
+}
 
-  def go_next_turn <img src="images/icons/callouts/4.png" alt="4">
-    @turn = (@turn + 1) % @scores.size
-  end
+void game_playing(Game *game, int score_index, int pins) { // <b class="conum">(5)</b>
+    Score *score = &amp;game-&gt;scores[score_index];
+    score_scoring(score, pins);
 
-  def playing(score_index, pins) <img src="images/icons/callouts/5.png" alt="5">
-    @scores[score_index].scoring(pins)
-    if @scores[score_index].fno &gt; 10 <img src="images/icons/callouts/6.png" alt="6">
-      go_next_turn if @scores[score_index].finished?
-    elsif @scores[score_index].current.state == :BEFORE_1ST <img src="images/icons/callouts/7.png" alt="7">
-      go_next_turn
-    end
-  end
+    if (score-&gt;fno &gt; 10) {
+        if (score_is_finished(score)) { // <b class="conum">(6)</b>
+            game_go_next_turn(game);
+        }
+    } else if (score_current(score)-&gt;state == BEFORE_1ST) { // <b class="conum">(7)</b>
+        game_go_next_turn(game);
+    }
+}
 
-  def finished? <img src="images/icons/callouts/8.png" alt="8">
-    @scores.reject(&amp;:finished?) == []
-  end
+bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
+    for (int i = 0; i &lt; game-&gt;player_count; i++) {
+        if (!score_is_finished(&amp;game-&gt;scores[i])) {
+            return false;
+        }
+    }
+    return true;
+}
 
-  def to_s <img src="images/icons/callouts/9.png" alt="9">
-    "Game(id:#{@id}),\n#{@scores.join("\n")}"
-  end
-end</code></pre>
+void game_print(const Game *game) { // <b class="conum">(9)</b>
+    printf("Game(id:%s)\n", game-&gt;id);
+    for (int i = 0; i &lt; game-&gt;player_count; i++) {
+        score_print(&amp;game-&gt;scores[i]);
+    }
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>ゲームごとにユニークなIDをつけておく。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>ゲームに参加するプレーヤーを登録するメソッド。そのプレーヤーの今回のゲーム分のスコアも用意する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>現在プレー中のプレーヤー名を取得するメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>次のプレーヤーに交代するメソッド。登録したプレーヤーの順に進み、最後まで来たら最初のプレーヤーへ戻る。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/5.png" alt="5"></td>
-<td>ゲームを実行するメソッド。現在のプレーヤーのスコアクラスのscoring メソッドを呼び出して1フレーム分のプレーを記録する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/6.png" alt="6"></td>
-<td>サービスフレームでは、2フレーム以上プレーする場合があるので、そのときは交代しない。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/7.png" alt="7"></td>
-<td>現在のプレーヤーの現在の状態が「BEFORE_1ST」なら、次のフレームの投球待ちになっているので、プレーヤーを交代する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/8.png" alt="8"></td>
-<td>すべてのプレーヤーがゲーム終了かどうか調べるメソッド。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/9.png" alt="9"></td>
-<td>ゲームの状況を文字列化するメソッド。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>ゲームごとにユニークなIDをつけておく。</p>
+</li>
+<li>
+<p>ゲームに参加するプレーヤーを登録する関数。そのプレーヤーの今回のゲーム分のスコアも用意する。</p>
+</li>
+<li>
+<p>現在プレー中のプレーヤー名を取得する関数。</p>
+</li>
+<li>
+<p>次のプレーヤーに交代する関数。登録したプレーヤーの順に進み、最後まで来たら最初のプレーヤーへ戻る。</p>
+</li>
+<li>
+<p>ゲームを実行する関数。現在のプレーヤーのスコアクラスの <code>scoring</code> 関数を呼び出して1フレーム分のプレーを記録する。</p>
+</li>
+<li>
+<p>サービスフレームでは、2フレーム以上プレーする場合があるので、そのときは交代しない。</p>
+</li>
+<li>
+<p>現在のプレーヤーの現在の状態が「BEFORE_1ST」なら、次のフレームの投球待ちになっているので、プレーヤーを交代する。</p>
+</li>
+<li>
+<p>すべてのプレーヤーがゲーム終了かどうか調べる関数。</p>
+</li>
+<li>
+<p>ゲームの状況を文字列化する関数。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>クラス図にもこの結果を反映しておきましょう（ <a href="_behavior_design.html#update_class_for_game_score00">図 4.22</a> ）。
@@ -1373,54 +1444,62 @@ end</code></pre>
 新しいスコアシートを作成して、そこに必要な数のゲームを追加すれば済みそうです。</p>
 </div>
 <div class="paragraph">
-<p>この方式に合わせてスコアを記録する処理をする「Game」クラスは、 <a href="_behavior_design.html#ruby_scoresheet_code01">リスト 4.7</a> のようになるでしょう。</p>
+<p>この方式に合わせてスコアを記録する処理をする「ScoreSheet」クラスは、 <a href="_behavior_design.html#c_scoresheet_code01">リスト 4.11</a> 、 <a href="_behavior_design.html#c_scoresheet_code02">リスト 4.12</a> のようになるでしょう。</p>
 </div>
-<div id="ruby_scoresheet_code01" class="listingblock">
-<div class="title">リスト 4.7 【Ruby】score.rb(7)</div>
+<div id="c_scoresheet_code01" class="listingblock">
+<div class="title">リスト 4.11 <code>bowling.h</code> (4)</div>
 <div class="content">
-<pre class="prettyprint highlight"><code data-lang="ruby"># FrameクラスとScoreクラスとGameクラスの定義やそれ以前のコードがここにある
+<pre class="prettyprint highlight linenums:113"><code data-lang="c">/* ScoreSheet関数 */
+void scoresheet_init(ScoreSheet *sheet, time_t date);
+void scoresheet_add_game(ScoreSheet *sheet, int games);
+void scoresheet_print(const ScoreSheet *sheet);
 
-# ScoreSheetは、複数名の複数回のGameを記録する
-class ScoreSheet
-  attr_accessor :id, :time, :games
+/* ユーティリティ関数 */
+void generate_id(char *id);
+const char* frame_state_to_string(FrameState state);
 
-  def initialize(date) <img src="images/icons/callouts/1.png" alt="1">
-    @id = SecureRandom.urlsafe_base64(8) <img src="images/icons/callouts/2.png" alt="2">
-    @play_date = date
-    @games = []
-  end
+#endif /* BOWLING_H */</code></pre>
+</div>
+</div>
+<div id="c_scoresheet_code02" class="listingblock">
+<div class="title">リスト 4.12 <code>bowling.c</code> (8)</div>
+<div class="content">
+<pre class="prettyprint highlight linenums:340"><code data-lang="c">void scoresheet_init(ScoreSheet *sheet, time_t date) { // <b class="conum">(1)</b>
+    generate_id(sheet-&gt;id);  // <b class="conum">(2)</b>
+    sheet-&gt;play_date = date;
+    sheet-&gt;game_count = 0;
+}
 
-  def add_game(games = 1) <img src="images/icons/callouts/3.png" alt="3">
-    games.times do
-      @games.append(Game.new)
-    end
-  end
+void scoresheet_add_game(ScoreSheet *sheet, int games) { // <b class="conum">(3)</b>
+    for (int i = 0; i &lt; games &amp;&amp; sheet-&gt;game_count &lt; MAX_GAMES; i++) {
+        game_init(&amp;sheet-&gt;games[sheet-&gt;game_count]);
+        sheet-&gt;game_count++;
+    }
+}
 
-  def to_s <img src="images/icons/callouts/4.png" alt="4">
-    "Score Sheet Date: #{@time}(id:#{@id})"
-  end
-end</code></pre>
+void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
+    char date_str[64];
+    struct tm *tm_info = localtime(&amp;sheet-&gt;play_date);
+    strftime(date_str, sizeof(date_str), "%Y-%m-%d %H:%M:%S", tm_info);
+    printf("Score Sheet Date: %s (id:%s)\n", date_str, sheet-&gt;id);
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<table>
-<tr>
-<td><img src="images/icons/callouts/1.png" alt="1"></td>
-<td>スコアシートを作成するときは、作成時の日時を控えておく。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/2.png" alt="2"></td>
-<td>スコアシートごとにユニークなIDをつけておく。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/3.png" alt="3"></td>
-<td>希望する数のゲームをシートに追加するメソッド。引数がないときは1組だけ追加する。</td>
-</tr>
-<tr>
-<td><img src="images/icons/callouts/4.png" alt="4"></td>
-<td>スコアシートの状況を文字列化するメソッド。</td>
-</tr>
-</table>
+<ol>
+<li>
+<p>スコアシートを作成するときは、作成時の日時を控えておく。</p>
+</li>
+<li>
+<p>スコアシートごとにユニークなIDをつけておく。</p>
+</li>
+<li>
+<p>希望する数のゲームをシートに追加するメソッド。引数がないときは1組だけ追加する。</p>
+</li>
+<li>
+<p>スコアシートの状況を文字列化するメソッド。</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>クラス図にもこの結果を反映しておきましょう（ <a href="_behavior_design.html#update_class_for_scoresheet00">図 4.23</a> ）。
@@ -1447,8 +1526,8 @@ end</code></pre>
 </div>
 <div id="step_for_behavier_model" class="sidebarblock">
 <div class="content">
-<div class="title">スコアシートの振る舞いのモデルを作成した手順</div>
 <div class="olist arabic">
+<div class="title">スコアシートの振る舞いのモデルを作成した手順</div>
 <ol class="arabic">
 <li>
 <p>スコアに関する状態の発見</p>
@@ -1505,13 +1584,13 @@ end</code></pre>
 そして、あらかじめモデルとコードを対応づけておけば、それを前提として（モデルやコードの構成方式として）振る舞いの設計に活かせます。</p>
 </div>
 <div class="paragraph">
-<p>モデルとコードが対応づけられていれば、Rubyのプログラムはステートマシン図から変換するように作成できます。
+<p>モデルとコードが対応づけられていれば、C言語のプログラムはステートマシン図から変換するように作成できます。
 つまり、解決すべき課題があったとき、その課題を構造のモデルと振る舞いのモデルで表すことができれば、そのモデルなりのプログラムが作成できるわけです。
 一方、このような方法で作成したプログラムが期待した動作をしない場合には、モデルが誤っているか、対応づけのルールに不備があるということです。</p>
 </div>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">【参考】モデル変換とモデル駆動開発（MDD）</div>
+<div class="title">モデル変換とモデル駆動開発（MDD）【参考】</div>
 <div class="paragraph">
 <p>ここで示したようなモデルとコードの対応づけのほかに、モデルから別のモデルへ、あるいはコードから別のコードへといった対応づけも考えられます。
 モデルからコードを生成する方法には、このチュートリアルのように図の要素とコードの要素を対応させるルールを決めて手で変換する方法以外にもあります。
@@ -1547,7 +1626,7 @@ end</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-バージョン html 0786<br>
+バージョン html 0795<br>
 最終更新 2026-03-04 11:50:36 +0900
 </div>
 </div>
