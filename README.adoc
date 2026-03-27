@@ -1,4 +1,4 @@
-= UML初学者向けチュートリアル: モデルを使ってソフトウェアを開発しよう
+= UML初学者向けチュートリアル: モデルを使ってソフトウェアを開発しよう（C言語版）
 
 
 このリポジトリが提要しているのは、ソフトウェアの開発にモデリングツールを使う方法などについて独習するためのチュートリアルの文書、サンプルモデル、サンプルコードなどです。
@@ -8,10 +8,10 @@
 
 PDF版やHTML版（HTMLと付随の画像等をまとめたもの）は、リリースページから取得できます。
 
-* https://github.com/ChangeVision/tutorial-bowling-score-modeling/releases[リリースページ]
+* https://github.com/ChangeVision/tutorial-bowling-score-modeling_c/releases[リリースページ]
 
-tut_uml_modeling_bs.pdf:: 電子ブックの体裁のPDF版です。
-tut_uml_modeling_bs.zip:: ブラウザで閲覧するHTML版です。Zipファイルを展開すると、`tut_uml_modeling_bs_html` フォルダにファイルが展開されます。ウェブブラウザから `tut_uml_modeling_bs_full.html` か `tut_uml_modeling_bs.html` を参照します。前者は全体を1つのページとしてまとめた形式、後者は章ごとに別ページに分割した形式です。
+tut_uml_modeling_bs_c.pdf:: 電子ブックの体裁のPDF版です。
+tut_uml_modeling_bs_c_html.zip:: ブラウザで閲覧するHTML版です。Zipファイルを展開すると、`tut_uml_modeling_bs_c_html` フォルダにファイルが展開されます。ウェブブラウザから `tut_uml_modeling_bs_c_full.html` か `tut_uml_modeling_bs_c.html` を参照します。前者は全体を1つのページとしてまとめた形式、後者は章ごとに別ページに分割した形式です。
 
 
 より直近のものを参照したい場合には、このリポジトリをクローンして、リポジトリ中にある PDF や HTML ファイルを直接参照してください。
