@@ -31,7 +31,7 @@ CODE_STYLE = # './rouge_custom_color.rb'
 LIB_EXT = './lib/heading-treeprocessor.rb'
 LIB_EXT2 = './lib/autoxref-treeprocessor.rb'
 LIB_EXT3 = './lib/asciidoctor-pdf-extensions.rb'
-LIB_EXT4 = './lib/asciidoctor-multipage.rb'
+LIB_EXT4 = './lib/asciidoctor-multipage-custom.rb'
 LIB_HTML_EXT = %w[
   ./lib/html-converter-custom-abstract.rb
   ./lib/html-converter-custom-sidebar-caption.rb
@@ -39,6 +39,7 @@ LIB_HTML_EXT = %w[
 ]
 LIB_PDF_EXT = %w[
   ./lib/pdf-converter-abstract-paragraphs.rb
+  ./lib/html-converter-custom-chapter-title.rb
   ./lib/pdf-converter-code-float-wrapping.rb
   ./lib/pdf-converter-custom-sidebar-caption.rb
   ./lib/pdf-converter-source-language-label.rb
@@ -56,6 +57,8 @@ ALL_IMAGE_DIRS.each do |dir|
   ALL_IMAGES.concat(FileList["#{dir}/*"].exclude(/\.pdf$/).exclude(/\.ppt*$/))
 end
 
+HTMLS
+PDFS
 CLOBBER.concat HTMLS
 CLOBBER.concat PDFS
 
@@ -252,7 +255,7 @@ def make_depends(adoc, images_dir, source_dir, include_dir, depends, variables)
     # p line
 
     if line =~ /^:imagesdir:\s*([\w\-\/.]+)/
-      cur_images_dir =  $1
+      cur_images_dir = $1
       # puts "cur_images_dir ==> #{cur_images_dir}"
       next
     end
