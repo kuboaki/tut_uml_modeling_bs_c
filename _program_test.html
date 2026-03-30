@@ -9,6 +9,7 @@
 <meta name="author" content="株式会社チェンジビジョン">
 <title>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</title>
 <link rel="stylesheet" href="css/mystyle.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
 <style>.toc-current{font-weight: bold;} .toc-root{font-family: "Open Sans","DejaVu Sans",sans-serif;
                        font-size: 0.9em;} #content{display: flex; flex-direction: column; flex: 1 1 auto;}
@@ -20,8 +21,8 @@
 <h1>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</h1>
 <div class="details">
 <span id="author" class="author">株式会社チェンジビジョン</span><br>
-<span id="revnumber">バージョン html 0808,</span>
-<span id="revdate">2026-03-29</span>
+<span id="revnumber">バージョン html 0822,</span>
+<span id="revdate">2026-03-30</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">目次</div>
@@ -211,12 +212,12 @@ const char* frame_state_to_string(FrameState state);
 <pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.c - ボーリングスコア管理システムの実装 */
 #include "bowling.h"
 
-void generate_id(char *id) { // <b class="conum">(1)</b>
+void generate_id(char *id) { <i class="conum" data-value="1"></i><b>(1)</b>
     static int counter = 0;
     snprintf(id, ID_LEN, "ID%08d", counter++);
 }
 
-const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b>
+const char* frame_state_to_string(FrameState state) { <i class="conum" data-value="2"></i><b>(2)</b>
     switch (state) {
         case RESERVED:    return "RESERVED";
         case BEFORE_1ST:  return "BEFORE_1ST";
@@ -231,14 +232,14 @@ const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b
  * Frame実装
  * ================================================================= */
 
-void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
+void frame_init(Frame *frame, int frame_no) { <i class="conum" data-value="3"></i><b>(3)</b>
     frame-&gt;frame_no = frame_no;
     frame-&gt;first = 0;
     frame-&gt;second = 0;
     frame-&gt;spare_bonus = 0;
     frame-&gt;strike_bonus = 0;
     frame-&gt;total = 0;
-    frame-&gt;state = RESERVED; // <b class="conum">(4)</b>
+    frame-&gt;state = RESERVED; <i class="conum" data-value="4"></i><b>(4)</b>
 }
 
 static void frame_before_1st_proc(Frame *frame, EventType event, int pins) {
@@ -277,21 +278,21 @@ static void frame_before_2nd_proc(Frame *frame, EventType event, int pins) {
 }
 
 void frame_action(Frame *frame, EventType event, int pins) {
-    switch (frame-&gt;state) { // <b class="conum">(1)</b>
-    case RESERVED: // <b class="conum">(2)</b>
+    switch (frame-&gt;state) { <i class="conum" data-value="1"></i><b>(1)</b>
+    case RESERVED: <i class="conum" data-value="2"></i><b>(2)</b>
         if (event == SETUP) {
             frame-&gt;state = BEFORE_1ST;
         } else {
             printf("invalid event is ignored.\n");
         }
         break;
-    case BEFORE_1ST: // <b class="conum">(3)</b>
+    case BEFORE_1ST: <i class="conum" data-value="3"></i><b>(3)</b>
         frame_before_1st_proc(frame, event, pins);
         break;
-    case BEFORE_2ND: // <b class="conum">(4)</b>
+    case BEFORE_2ND: <i class="conum" data-value="4"></i><b>(4)</b>
         frame_before_2nd_proc(frame, event, pins);
         break;
-    case PENDING: // <b class="conum">(5)</b>
+    case PENDING: <i class="conum" data-value="5"></i><b>(5)</b>
         if (event == DETERMINE) {
             frame-&gt;state = FIXED;
         }
@@ -343,22 +344,22 @@ void frame_print(const Frame *frame) {
  * Score実装
  * ================================================================= */
 
-void score_init(Score *score, const char *name) { // <b class="conum">(1)</b>
+void score_init(Score *score, const char *name) { <i class="conum" data-value="1"></i><b>(1)</b>
     generate_id(score-&gt;id);
     strncpy(score-&gt;player, name, MAX_NAME_LEN - 1);
     score-&gt;player[MAX_NAME_LEN - 1] = '\0';
     score-&gt;fno = 1;
-    score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(2)</b>
+    score-&gt;state = WAIT_FOR_1ST; <i class="conum" data-value="2"></i><b>(2)</b>
 
     /* ダミーフレーム含めて初期化 (-1, 0はダミー) */
     for (int i = 0; i &lt; MAX_FRAMES; i++) {
         frame_init(&amp;score-&gt;frames[i], i - 1);
     }
 
-    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); // <b class="conum">(3)</b>
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); <i class="conum" data-value="3"></i><b>(3)</b>
 }
 
-int score_fno2idx(int fno) { // <b class="conum">(4)</b>
+int score_fno2idx(int fno) { <i class="conum" data-value="4"></i><b>(4)</b>
     return fno + 1; /* frame number 1 =&gt; array index 2 (0 origin) */
 }
 
@@ -366,24 +367,24 @@ Frame* score_frame(Score *score, int fno) {
     return &amp;score-&gt;frames[score_fno2idx(fno)];
 }
 
-void score_go_next_frame(Score *score) { // <b class="conum">(5)</b>
+void score_go_next_frame(Score *score) { <i class="conum" data-value="5"></i><b>(5)</b>
     score-&gt;fno += 1;
     frame_action(score_frame(score, score-&gt;fno), SETUP, 0);
 }
 
-Frame* score_current(Score *score) { // <b class="conum">(6)</b>
+Frame* score_current(Score *score) { <i class="conum" data-value="6"></i><b>(6)</b>
     return score_frame(score, score-&gt;fno);
 }
 
-Frame* score_prev(Score *score) { // <b class="conum">(7)</b>
+Frame* score_prev(Score *score) { <i class="conum" data-value="7"></i><b>(7)</b>
     return score_frame(score, score-&gt;fno - 1);
 }
 
-Frame* score_pprev(Score *score) { // <b class="conum">(8)</b>
+Frame* score_pprev(Score *score) { <i class="conum" data-value="8"></i><b>(8)</b>
     return score_frame(score, score-&gt;fno - 2);
 }
 
-void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b>
+void score_calc_spare_bonus_after_1st(Score *score) { <i class="conum" data-value="9"></i><b>(9)</b>
     Frame *prev = score_prev(score);
     Frame *current = score_current(score);
 
@@ -395,7 +396,7 @@ void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b
     frame_action(prev, DETERMINE, 0);
 }
 
-void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)</b>
+void score_calc_strike_bonus_after_1st(Score *score) { <i class="conum" data-value="10"></i><b>(10)</b>
     Frame *prev = score_prev(score);
     Frame *pprev = score_pprev(score);
     Frame *current = score_current(score);
@@ -408,7 +409,7 @@ void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)<
     frame_action(pprev, DETERMINE, 0);
 }
 
-void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)</b>
+void score_calc_strike_bonus_after_2nd(Score *score) { <i class="conum" data-value="11"></i><b>(11)</b>
     Frame *prev = score_prev(score);
     Frame *current = score_current(score);
 
@@ -420,51 +421,51 @@ void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)<
     frame_action(prev, DETERMINE, 0);
 }
 
-void score_update_total(Score *score) { // <b class="conum">(12)</b>
+void score_update_total(Score *score) { <i class="conum" data-value="12"></i><b>(12)</b>
     for (int i = 1; i &lt; MAX_FRAMES - 1; i++) {
         score-&gt;frames[i + 1].total =
             score-&gt;frames[i].total + frame_score(&amp;score-&gt;frames[i + 1]);
     }
 }
 
-bool score_is_finished(const Score *score) { // <b class="conum">(13)</b>
+bool score_is_finished(const Score *score) { <i class="conum" data-value="13"></i><b>(13)</b>
     return frame_is_fixed(score_frame((Score*)score, 10));
 }
 
-static void score_wait_for_1st_proc(Score *score, int pins) { // <b class="conum">(1)</b>
+static void score_wait_for_1st_proc(Score *score, int pins) { <i class="conum" data-value="1"></i><b>(1)</b>
     Frame *current = score_current(score);
 
-    frame_action(current, PINS, pins); // <b class="conum">(2)</b>
+    frame_action(current, PINS, pins); <i class="conum" data-value="2"></i><b>(2)</b>
     score_calc_spare_bonus_after_1st(score);
     score_calc_strike_bonus_after_1st(score);
     score_update_total(score);
 
-    if (score_is_finished(score)) { // <b class="conum">(3)</b>
+    if (score_is_finished(score)) { <i class="conum" data-value="3"></i><b>(3)</b>
         score-&gt;state = FINISHED;
-    } else if (frame_is_strike(current)) { // <b class="conum">(4)</b>
+    } else if (frame_is_strike(current)) { <i class="conum" data-value="4"></i><b>(4)</b>
         score-&gt;state = WAIT_FOR_1ST;
         score_go_next_frame(score);
     } else {
-        score-&gt;state = WAIT_FOR_2ND; // <b class="conum">(5)</b>
+        score-&gt;state = WAIT_FOR_2ND; <i class="conum" data-value="5"></i><b>(5)</b>
     }
 }
 
-static void score_wait_for_2nd_proc(Score *score, int pins) { // <b class="conum">(6)</b>
+static void score_wait_for_2nd_proc(Score *score, int pins) { <i class="conum" data-value="6"></i><b>(6)</b>
     Frame *current = score_current(score);
 
-    frame_action(current, PINS, pins); // <b class="conum">(7)</b>
+    frame_action(current, PINS, pins); <i class="conum" data-value="7"></i><b>(7)</b>
     score_calc_strike_bonus_after_2nd(score);
     score_update_total(score);
 
-    if (score_is_finished(score)) { // <b class="conum">(8)</b>
+    if (score_is_finished(score)) { <i class="conum" data-value="8"></i><b>(8)</b>
         score-&gt;state = FINISHED;
     } else {
-        score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(9)</b>
+        score-&gt;state = WAIT_FOR_1ST; <i class="conum" data-value="9"></i><b>(9)</b>
         score_go_next_frame(score);
     }
 }
 
-void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
+void score_scoring(Score *score, int pins) { <i class="conum" data-value="10"></i><b>(10)</b>
     switch (score-&gt;state) {
         case WAIT_FOR_1ST:
             score_wait_for_1st_proc(score, pins);
@@ -478,7 +479,7 @@ void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
     }
 }
 
-void score_print(const Score *score) { // <b class="conum">(11)</b>
+void score_print(const Score *score) { <i class="conum" data-value="11"></i><b>(11)</b>
     printf("Player:%s, Score(id: %s), Frame:%d\n",
            score-&gt;player, score-&gt;id, score-&gt;fno);
     printf("|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|\n");
@@ -492,12 +493,12 @@ void score_print(const Score *score) { // <b class="conum">(11)</b>
  * ================================================================= */
 
 void game_init(Game *game) {
-    generate_id(game-&gt;id); // <b class="conum">(1)</b>
+    generate_id(game-&gt;id); <i class="conum" data-value="1"></i><b>(1)</b>
     game-&gt;turn = 0;
     game-&gt;player_count = 0;
 }
 
-void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
+void game_entry(Game *game, const char *name) { <i class="conum" data-value="2"></i><b>(2)</b>
     if (game-&gt;player_count &gt;= MAX_PLAYERS) {
         printf("Maximum number of players reached.\n");
         return;
@@ -506,28 +507,28 @@ void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
     game-&gt;player_count++;
 }
 
-const char* game_turn_player_name(const Game *game) { // <b class="conum">(3)</b>
+const char* game_turn_player_name(const Game *game) { <i class="conum" data-value="3"></i><b>(3)</b>
     return game-&gt;scores[game-&gt;turn].player;
 }
 
-void game_go_next_turn(Game *game) { // <b class="conum">(4)</b>
+void game_go_next_turn(Game *game) { <i class="conum" data-value="4"></i><b>(4)</b>
     game-&gt;turn = (game-&gt;turn + 1) % game-&gt;player_count;
 }
 
-void game_playing(Game *game, int score_index, int pins) { // <b class="conum">(5)</b>
+void game_playing(Game *game, int score_index, int pins) { <i class="conum" data-value="5"></i><b>(5)</b>
     Score *score = &amp;game-&gt;scores[score_index];
     score_scoring(score, pins);
 
     if (score-&gt;fno &gt; 10) {
-        if (score_is_finished(score)) { // <b class="conum">(6)</b>
+        if (score_is_finished(score)) { <i class="conum" data-value="6"></i><b>(6)</b>
             game_go_next_turn(game);
         }
-    } else if (score_current(score)-&gt;state == BEFORE_1ST) { // <b class="conum">(7)</b>
+    } else if (score_current(score)-&gt;state == BEFORE_1ST) { <i class="conum" data-value="7"></i><b>(7)</b>
         game_go_next_turn(game);
     }
 }
 
-bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
+bool game_is_finished(const Game *game) { <i class="conum" data-value="8"></i><b>(8)</b>
     for (int i = 0; i &lt; game-&gt;player_count; i++) {
         if (!score_is_finished(&amp;game-&gt;scores[i])) {
             return false;
@@ -536,7 +537,7 @@ bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
     return true;
 }
 
-void game_print(const Game *game) { // <b class="conum">(9)</b>
+void game_print(const Game *game) { <i class="conum" data-value="9"></i><b>(9)</b>
     printf("Game(id:%s)\n", game-&gt;id);
     for (int i = 0; i &lt; game-&gt;player_count; i++) {
         score_print(&amp;game-&gt;scores[i]);
@@ -547,20 +548,20 @@ void game_print(const Game *game) { // <b class="conum">(9)</b>
  * ScoreSheet実装
  * ================================================================= */
 
-void scoresheet_init(ScoreSheet *sheet, time_t date) { // <b class="conum">(1)</b>
-    generate_id(sheet-&gt;id);  // <b class="conum">(2)</b>
+void scoresheet_init(ScoreSheet *sheet, time_t date) { <i class="conum" data-value="1"></i><b>(1)</b>
+    generate_id(sheet-&gt;id);  <i class="conum" data-value="2"></i><b>(2)</b>
     sheet-&gt;play_date = date;
     sheet-&gt;game_count = 0;
 }
 
-void scoresheet_add_game(ScoreSheet *sheet, int games) { // <b class="conum">(3)</b>
+void scoresheet_add_game(ScoreSheet *sheet, int games) { <i class="conum" data-value="3"></i><b>(3)</b>
     for (int i = 0; i &lt; games &amp;&amp; sheet-&gt;game_count &lt; MAX_GAMES; i++) {
         game_init(&amp;sheet-&gt;games[sheet-&gt;game_count]);
         sheet-&gt;game_count++;
     }
 }
 
-void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
+void scoresheet_print(const ScoreSheet *sheet) { <i class="conum" data-value="4"></i><b>(4)</b>
     char date_str[64];
     struct tm *tm_info = localtime(&amp;sheet-&gt;play_date);
     strftime(date_str, sizeof(date_str), "%Y-%m-%d %H:%M:%S", tm_info);
@@ -616,39 +617,39 @@ run: $(TARGET)
 
 int main(void) {
     ScoreSheet sheet;
-    scoresheet_init(&amp;sheet, time(NULL)); // <b class="conum">(1)</b>
+    scoresheet_init(&amp;sheet, time(NULL)); <i class="conum" data-value="1"></i><b>(1)</b>
 
-    scoresheet_add_game(&amp;sheet, 1); // <b class="conum">(2)</b>
-    Game *game = &amp;sheet.games[sheet.game_count - 1]; // <b class="conum">(3)</b>
+    scoresheet_add_game(&amp;sheet, 1); <i class="conum" data-value="2"></i><b>(2)</b>
+    Game *game = &amp;sheet.games[sheet.game_count - 1]; <i class="conum" data-value="3"></i><b>(3)</b>
 
-    game_entry(game, "くぼあき"); // <b class="conum">(4)</b>
+    game_entry(game, "くぼあき"); <i class="conum" data-value="4"></i><b>(4)</b>
     game_entry(game, "うえはら");
 
-    scoresheet_print(&amp;sheet); // <b class="conum">(5)</b>
+    scoresheet_print(&amp;sheet); <i class="conum" data-value="5"></i><b>(5)</b>
     printf("\n");
 
-    int game_records[2][30] = { // <b class="conum">(6)</b>
+    int game_records[2][30] = { <i class="conum" data-value="6"></i><b>(6)</b>
         // {7, 0, 5, 5, 10, 10, 5, 4, 10, 7, 3, 5, 4, 7, 3, 7, 3, 4},
         // {6, 3, 9, 0, 0, 3, 8, 2, 7, 3, 10, 9, 1, 8, 0, 10, 6, 3}
         {7, 0, 5, 5, 10, 10, 5, 4, 10, 7, 3, 5, 4, 7, 3, 7, 3, 4},
         {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}
     };
-    int record_index[2] = {0, 0}; // <b class="conum">(7)</b>
+    int record_index[2] = {0, 0}; <i class="conum" data-value="7"></i><b>(7)</b>
 
-    while (!game_is_finished(game)) { // <b class="conum">(8)</b>
+    while (!game_is_finished(game)) { <i class="conum" data-value="8"></i><b>(8)</b>
         printf("----------------------------------------\n");
         printf("turn: %s\n", game_turn_player_name(game));
 
-        int score_index = game-&gt;turn; // <b class="conum">(9)</b>
-        int pins = game_records[score_index][record_index[score_index]]; // <b class="conum">(10)</b>
+        int score_index = game-&gt;turn; <i class="conum" data-value="9"></i><b>(9)</b>
+        int pins = game_records[score_index][record_index[score_index]]; <i class="conum" data-value="10"></i><b>(10)</b>
         record_index[score_index]++;
 
         printf("input pins: %d\n", pins);
-        game_playing(game, score_index, pins); // <b class="conum">(11)</b>
+        game_playing(game, score_index, pins); <i class="conum" data-value="11"></i><b>(11)</b>
 
-        game_print(game); // <b class="conum">(12)</b>
+        game_print(game); <i class="conum" data-value="12"></i><b>(12)</b>
 
-        printf("Press Enter to continue..."); // <b class="conum">(13)</b>
+        printf("Press Enter to continue..."); <i class="conum" data-value="13"></i><b>(13)</b>
         getchar();
     }
 
@@ -658,47 +659,60 @@ int main(void) {
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>新しいスコアシートを作成する。</p>
-</li>
-<li>
-<p>作成したスコアシートにゲームを追加する。</p>
-</li>
-<li>
-<p>追加したゲームを選ぶ（ここでは最後のゲームを選ぶ方法をとった）。</p>
-</li>
-<li>
-<p>ゲームへプレーヤーがエントリーする。このプレーヤーのこのゲーム用のスコアが用意される。</p>
-</li>
-<li>
-<p>スコアシートの作成日付とIDの表示。</p>
-</li>
-<li>
-<p>テスト用データ。1行が1人の1ゲーム分のピン数のデータ。</p>
-</li>
-<li>
-<p>各プレイヤーの現在の投球インデックス。</p>
-</li>
-<li>
-<p>ゲームの終了まで繰り返し。</p>
-</li>
-<li>
-<p>turnは、そのゲーム内の何番目のプレーヤーか（ゲーム中の何番目のスコアか）を表している。このテストコードでは2人がエントリしているので、0→1→0→1 と繰り返す。</p>
-</li>
-<li>
-<p>現在のturnのプレーヤーのピン数のテストデータを先頭から1つずつ取り出す。</p>
-</li>
-<li>
-<p>現在のturnのプレーヤーのスコアにピン数を渡して、スコアへ反映する。</p>
-</li>
-<li>
-<p>現在のゲームの全体像を取得して表示する。</p>
-</li>
-<li>
-<p>ここで空の改行キーを入力してテストを進める。テストを1回ずつ止めて実行できる。この入力待ちをやめれば一括して実行できる。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>新しいスコアシートを作成する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>作成したスコアシートにゲームを追加する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>追加したゲームを選ぶ（ここでは最後のゲームを選ぶ方法をとった）。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>ゲームへプレーヤーがエントリーする。このプレーヤーのこのゲーム用のスコアが用意される。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>スコアシートの作成日付とIDの表示。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>テスト用データ。1行が1人の1ゲーム分のピン数のデータ。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>各プレイヤーの現在の投球インデックス。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>ゲームの終了まで繰り返し。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>turnは、そのゲーム内の何番目のプレーヤーか（ゲーム中の何番目のスコアか）を表している。このテストコードでは2人がエントリしているので、0→1→0→1 と繰り返す。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>現在のturnのプレーヤーのピン数のテストデータを先頭から1つずつ取り出す。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td>現在のturnのプレーヤーのスコアにピン数を渡して、スコアへ反映する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="12"></i><b>12</b></td>
+<td>現在のゲームの全体像を取得して表示する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="13"></i><b>13</b></td>
+<td>ここで空の改行キーを入力してテストを進める。テストを1回ずつ止めて実行できる。この入力待ちをやめれば一括して実行できる。</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -730,16 +744,16 @@ C:\Users\（演習用ディレクトリ）&gt;\score&gt; make</code></pre>
 <div class="title">リスト 5.6 <code>bowling</code> プログラムを実行する</div>
 <div class="content">
 <pre class="prettyprint highlight"><code data-lang="console">C:\Users\（演習用ディレクトリ）&gt;\score&gt; ./bowling
-Score Sheet Date: 2022-02-26 02:08:21 +0900(id:0GG70gNRWtk) # <b class="conum">(1)</b>
+Score Sheet Date: 2022-02-26 02:08:21 +0900(id:0GG70gNRWtk) <i class="conum" data-value="1"></i><b>(1)</b>
 ----------------------------------------
-turn: くぼあき # <b class="conum">(2)</b>
-input pins: 7 # <b class="conum">(3)</b>
-Game(id:zwBxlorJlog), # <b class="conum">(4)</b>
-Player:くぼあき, Score(id: q5rZ-vnFM1o), Frame:1, # <b class="conum">(5)</b>
+turn: くぼあき <i class="conum" data-value="2"></i><b>(2)</b>
+input pins: 7 <i class="conum" data-value="3"></i><b>(3)</b>
+Game(id:zwBxlorJlog), <i class="conum" data-value="4"></i><b>(4)</b>
+Player:くぼあき, Score(id: q5rZ-vnFM1o), Frame:1, <i class="conum" data-value="5"></i><b>(5)</b>
 |No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|
-|-1|  0|  0|    .|          0|          0|           0|   RESERVED| # <b class="conum">(6)</b>
+|-1|  0|  0|    .|          0|          0|           0|   RESERVED| <i class="conum" data-value="6"></i><b>(6)</b>
 | 0|  0|  0|    .|          0|          0|           0|   RESERVED|
-| 1|  7|  0|    .|          7|          0|           0| BEFORE_2ND| # <b class="conum">(7)</b>
+| 1|  7|  0|    .|          7|          0|           0| BEFORE_2ND| <i class="conum" data-value="7"></i><b>(7)</b>
 | 2|  0|  0|    .|          0|          0|           0|   RESERVED|
 | 3|  0|  0|    .|          0|          0|           0|   RESERVED|
 | 4|  0|  0|    .|          0|          0|           0|   RESERVED|
@@ -790,7 +804,7 @@ Player:くぼあき, Score(id: q5rZ-vnFM1o), Frame:11,
 | 8|  5|  4|  124|          9|          0|           0|      FIXED|
 | 9|  7|  3|  141|         17|          7|           0|      FIXED|
 |10|  7|  3|  155|         14|          4|           0|      FIXED|
-|11|  4|  0|    .|          4|          0|           0| BEFORE_2ND| # <b class="conum">(8)</b>
+|11|  4|  0|    .|          4|          0|           0| BEFORE_2ND| <i class="conum" data-value="8"></i><b>(8)</b>
 |12|  0|  0|    .|          0|          0|           0|   RESERVED|
 |13|  0|  0|    .|          0|          0|           0|   RESERVED|
 Player:うえはら, Score(id: plq9pFD6nSA), Frame:10,
@@ -816,32 +830,40 @@ C:\Users\（演習用ディレクトリ）&gt;\score&gt;</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>スコアシートの作成日付とIDの表示。</p>
-</li>
-<li>
-<p>どのプレーヤーのターンなのかを表示した。</p>
-</li>
-<li>
-<p>プログラムが受け取ったピン数。</p>
-</li>
-<li>
-<p>現在のゲームのID。</p>
-</li>
-<li>
-<p>プレーヤーとそのプレーヤーのスコアのID、現在のフレーム番号。</p>
-</li>
-<li>
-<p>前の前のフレームを無条件に扱うためのダミーフレーム。</p>
-</li>
-<li>
-<p>1投目が終わったので、フレームは2投目の投球前の状態。</p>
-</li>
-<li>
-<p>ここは2投目の投球前の状態だが、第10フレームの状態が「FIXED」なのでゲームは終了。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>スコアシートの作成日付とIDの表示。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>どのプレーヤーのターンなのかを表示した。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>プログラムが受け取ったピン数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>現在のゲームのID。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>プレーヤーとそのプレーヤーのスコアのID、現在のフレーム番号。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>前の前のフレームを無条件に扱うためのダミーフレーム。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>1投目が終わったので、フレームは2投目の投球前の状態。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>ここは2投目の投球前の状態だが、第10フレームの状態が「FIXED」なのでゲームは終了。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>動作を確認できるよう、テストプログラムを実行した様子を収めた動画を用意しました。
@@ -874,8 +896,8 @@ C:\Users\（演習用ディレクトリ）&gt;\score&gt;</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-バージョン html 0808<br>
-最終更新 2026-03-04 11:50:36 +0900
+バージョン html 0822<br>
+最終更新 2026-03-30 16:39:25 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.min.js"></script>

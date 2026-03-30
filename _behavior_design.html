@@ -9,6 +9,7 @@
 <meta name="author" content="株式会社チェンジビジョン">
 <title>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</title>
 <link rel="stylesheet" href="css/mystyle.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
 <style>.toc-current{font-weight: bold;} .toc-root{font-family: "Open Sans","DejaVu Sans",sans-serif;
                        font-size: 0.9em;} #content{display: flex; flex-direction: column; flex: 1 1 auto;}
@@ -20,8 +21,8 @@
 <h1>モデルを使ってソフトウェアを開発しよう: UML初学者向けチュートリアル（C言語版）</h1>
 <div class="details">
 <span id="author" class="author">株式会社チェンジビジョン</span><br>
-<span id="revnumber">バージョン html 0808,</span>
-<span id="revdate">2026-03-29</span>
+<span id="revnumber">バージョン html 0822,</span>
+<span id="revdate">2026-03-30</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">目次</div>
@@ -516,12 +517,12 @@ void frame_print(const Frame *frame);</code></pre>
 <pre class="prettyprint highlight linenums:1"><code data-lang="c">/* bowling.c - ボーリングスコア管理システムの実装 */
 #include "bowling.h"
 
-void generate_id(char *id) { // <b class="conum">(1)</b>
+void generate_id(char *id) { <i class="conum" data-value="1"></i><b>(1)</b>
     static int counter = 0;
     snprintf(id, ID_LEN, "ID%08d", counter++);
 }
 
-const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b>
+const char* frame_state_to_string(FrameState state) { <i class="conum" data-value="2"></i><b>(2)</b>
     switch (state) {
         case RESERVED:    return "RESERVED";
         case BEFORE_1ST:  return "BEFORE_1ST";
@@ -536,32 +537,36 @@ const char* frame_state_to_string(FrameState state) { // <b class="conum">(2)</b
  * Frame実装
  * ================================================================= */
 
-void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
+void frame_init(Frame *frame, int frame_no) { <i class="conum" data-value="3"></i><b>(3)</b>
     frame-&gt;frame_no = frame_no;
     frame-&gt;first = 0;
     frame-&gt;second = 0;
     frame-&gt;spare_bonus = 0;
     frame-&gt;strike_bonus = 0;
     frame-&gt;total = 0;
-    frame-&gt;state = RESERVED; // <b class="conum">(4)</b>
+    frame-&gt;state = RESERVED; <i class="conum" data-value="4"></i><b>(4)</b>
 }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>簡易的なIDを生成するユーティリティ関数。</p>
-</li>
-<li>
-<p>FrameStateを文字列に変換するユーティリティ関数。</p>
-</li>
-<li>
-<p>フレームの初期化処理。</p>
-</li>
-<li>
-<p>フレームの初期状態は「RESERVED」とする。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>簡易的なIDを生成するユーティリティ関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>FrameStateを文字列に変換するユーティリティ関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>フレームの初期化処理。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>フレームの初期状態は「RESERVED」とする。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>フレームごとのアクションの振り分けは、 <a href="_behavior_design.html#c_frame_code03">リスト 4.3</a> のようになるでしょう。</p>
@@ -570,21 +575,21 @@ void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
 <div class="title">リスト 4.3 <code>bowling.c</code> (2)</div>
 <div class="content">
 <pre class="prettyprint highlight linenums:69"><code data-lang="c">void frame_action(Frame *frame, EventType event, int pins) {
-    switch (frame-&gt;state) { // <b class="conum">(1)</b>
-    case RESERVED: // <b class="conum">(2)</b>
+    switch (frame-&gt;state) { <i class="conum" data-value="1"></i><b>(1)</b>
+    case RESERVED: <i class="conum" data-value="2"></i><b>(2)</b>
         if (event == SETUP) {
             frame-&gt;state = BEFORE_1ST;
         } else {
             printf("invalid event is ignored.\n");
         }
         break;
-    case BEFORE_1ST: // <b class="conum">(3)</b>
+    case BEFORE_1ST: <i class="conum" data-value="3"></i><b>(3)</b>
         frame_before_1st_proc(frame, event, pins);
         break;
-    case BEFORE_2ND: // <b class="conum">(4)</b>
+    case BEFORE_2ND: <i class="conum" data-value="4"></i><b>(4)</b>
         frame_before_2nd_proc(frame, event, pins);
         break;
-    case PENDING: // <b class="conum">(5)</b>
+    case PENDING: <i class="conum" data-value="5"></i><b>(5)</b>
         if (event == DETERMINE) {
             frame-&gt;state = FIXED;
         }
@@ -597,23 +602,28 @@ void frame_init(Frame *frame, int frame_no) { // <b class="conum">(3)</b>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>フレームの状態に応じて処理を分ける。</p>
-</li>
-<li>
-<p>「RESERVED」状態では「SETUP」イベントを受け取り、「BEFORE_1ST」状態へ遷移する。他のイベントが来たら無視する。</p>
-</li>
-<li>
-<p>「BEFORE_1ST」状態では「PINS」イベントを待つ。詳細な処理は「before_1st_porc」関数に記載する。</p>
-</li>
-<li>
-<p>「BEFORE_2ND」状態では「PINS」イベントを待つ。詳細な処理は「before_2nd_porc」関数に記載する。</p>
-</li>
-<li>
-<p>「PENDING」状態では「DETERMINE」イベントを受け取り、「FIXED」状態へ遷移する。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>フレームの状態に応じて処理を分ける。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>「RESERVED」状態では「SETUP」イベントを受け取り、「BEFORE_1ST」状態へ遷移する。他のイベントが来たら無視する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>「BEFORE_1ST」状態では「PINS」イベントを待つ。詳細な処理は「before_1st_porc」関数に記載する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>「BEFORE_2ND」状態では「PINS」イベントを待つ。詳細な処理は「before_2nd_porc」関数に記載する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>「PENDING」状態では「DETERMINE」イベントを受け取り、「FIXED」状態へ遷移する。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>アクションやガード条件判定用の関数メソッドは、 <a href="_behavior_design.html#c_frame_code04">リスト 4.4</a> 、  <a href="_behavior_design.html#c_frame_code05">リスト 4.5</a> のようになるでしょう。</p>
@@ -986,7 +996,7 @@ void frame_print(const Frame *frame) {
 <table>
 <tr>
 <td class="icon">
-<div class="title">ヒント</div>
+<i class="fa icon-tip" title="ヒント"></i>
 </td>
 <td class="content">
 ノート内の文章を編集するときは、ノートを選択した状態でプロパティーを使って編集すると、改行が入力しやすくなります。
@@ -1033,22 +1043,22 @@ void score_print(const Score *score);</code></pre>
 <div id="c_score_code02" class="listingblock">
 <div class="title">リスト 4.7 <code>bowling.c</code> (5)</div>
 <div class="content">
-<pre class="prettyprint highlight linenums:136"><code data-lang="c">void score_init(Score *score, const char *name) { // <b class="conum">(1)</b>
+<pre class="prettyprint highlight linenums:136"><code data-lang="c">void score_init(Score *score, const char *name) { <i class="conum" data-value="1"></i><b>(1)</b>
     generate_id(score-&gt;id);
     strncpy(score-&gt;player, name, MAX_NAME_LEN - 1);
     score-&gt;player[MAX_NAME_LEN - 1] = '\0';
     score-&gt;fno = 1;
-    score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(2)</b>
+    score-&gt;state = WAIT_FOR_1ST; <i class="conum" data-value="2"></i><b>(2)</b>
 
     /* ダミーフレーム含めて初期化 (-1, 0はダミー) */
     for (int i = 0; i &lt; MAX_FRAMES; i++) {
         frame_init(&amp;score-&gt;frames[i], i - 1);
     }
 
-    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); // <b class="conum">(3)</b>
+    frame_action(score_frame(score, score-&gt;fno), SETUP, 0); <i class="conum" data-value="3"></i><b>(3)</b>
 }
 
-int score_fno2idx(int fno) { // <b class="conum">(4)</b>
+int score_fno2idx(int fno) { <i class="conum" data-value="4"></i><b>(4)</b>
     return fno + 1; /* frame number 1 =&gt; array index 2 (0 origin) */
 }
 
@@ -1056,24 +1066,24 @@ Frame* score_frame(Score *score, int fno) {
     return &amp;score-&gt;frames[score_fno2idx(fno)];
 }
 
-void score_go_next_frame(Score *score) { // <b class="conum">(5)</b>
+void score_go_next_frame(Score *score) { <i class="conum" data-value="5"></i><b>(5)</b>
     score-&gt;fno += 1;
     frame_action(score_frame(score, score-&gt;fno), SETUP, 0);
 }
 
-Frame* score_current(Score *score) { // <b class="conum">(6)</b>
+Frame* score_current(Score *score) { <i class="conum" data-value="6"></i><b>(6)</b>
     return score_frame(score, score-&gt;fno);
 }
 
-Frame* score_prev(Score *score) { // <b class="conum">(7)</b>
+Frame* score_prev(Score *score) { <i class="conum" data-value="7"></i><b>(7)</b>
     return score_frame(score, score-&gt;fno - 1);
 }
 
-Frame* score_pprev(Score *score) { // <b class="conum">(8)</b>
+Frame* score_pprev(Score *score) { <i class="conum" data-value="8"></i><b>(8)</b>
     return score_frame(score, score-&gt;fno - 2);
 }
 
-void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b>
+void score_calc_spare_bonus_after_1st(Score *score) { <i class="conum" data-value="9"></i><b>(9)</b>
     Frame *prev = score_prev(score);
     Frame *current = score_current(score);
 
@@ -1085,7 +1095,7 @@ void score_calc_spare_bonus_after_1st(Score *score) { // <b class="conum">(9)</b
     frame_action(prev, DETERMINE, 0);
 }
 
-void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)</b>
+void score_calc_strike_bonus_after_1st(Score *score) { <i class="conum" data-value="10"></i><b>(10)</b>
     Frame *prev = score_prev(score);
     Frame *pprev = score_pprev(score);
     Frame *current = score_current(score);
@@ -1098,7 +1108,7 @@ void score_calc_strike_bonus_after_1st(Score *score) { // <b class="conum">(10)<
     frame_action(pprev, DETERMINE, 0);
 }
 
-void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)</b>
+void score_calc_strike_bonus_after_2nd(Score *score) { <i class="conum" data-value="11"></i><b>(11)</b>
     Frame *prev = score_prev(score);
     Frame *current = score_current(score);
 
@@ -1110,59 +1120,72 @@ void score_calc_strike_bonus_after_2nd(Score *score) { // <b class="conum">(11)<
     frame_action(prev, DETERMINE, 0);
 }
 
-void score_update_total(Score *score) { // <b class="conum">(12)</b>
+void score_update_total(Score *score) { <i class="conum" data-value="12"></i><b>(12)</b>
     for (int i = 1; i &lt; MAX_FRAMES - 1; i++) {
         score-&gt;frames[i + 1].total =
             score-&gt;frames[i].total + frame_score(&amp;score-&gt;frames[i + 1]);
     }
 }
 
-bool score_is_finished(const Score *score) { // <b class="conum">(13)</b>
+bool score_is_finished(const Score *score) { <i class="conum" data-value="13"></i><b>(13)</b>
     return frame_is_fixed(score_frame((Score*)score, 10));</code></pre>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>「Frame」のインスタンスの作成。クラス図では、「Score」から「Frame」へのコンポジションとして表されている部分。設計上は12個だが、サービスフレームで「次」を参照する場面、第1フレームで「前のフレーム」「前の前のフレーム」を参照する場面で参照するダミーのフレームを追加している。</p>
-</li>
-<li>
-<p>スコアの最初の状態を「WAIT_FOR_1ST」にする。</p>
-</li>
-<li>
-<p>第1フレームへ「SETUP」イベントを送る。</p>
-</li>
-<li>
-<p>フレーム番号とフレームの配列のインデックスを対応づける関数（ダミーのフレームを第1フレームの前に追加したためのオフセット）。</p>
-</li>
-<li>
-<p>現在のフレームを「次のフレームへ進める」関数。この関数では、次のフレームに「SETUP」イベントを送る。</p>
-</li>
-<li>
-<p>「現在のフレーム」を参照するための関数。クラス図では関連端名が「current」の「Frame」クラスへの関連で表されている。</p>
-</li>
-<li>
-<p>ボーナス計算で使う、「前のフレーム」を得る関数。</p>
-</li>
-<li>
-<p>ボーナス計算で使う、「前の前のフレーム」を得る関数。</p>
-</li>
-<li>
-<p>1投目の後のスペアボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</p>
-</li>
-<li>
-<p>1投目の後のストライクボーナスを計算する関数。前の前のフレームからストライクが続いていた場合、ここでスコアが確定するので、前の前のフレームへ「DETERMINE」イベントを送る。</p>
-</li>
-<li>
-<p>2投目の後のストライクボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</p>
-</li>
-<li>
-<p>「のべのトータル」を更新する関数。each_consは、配列から指定した数ずつ要素を取り出す関数。</p>
-</li>
-<li>
-<p>「ゲーム終了」の判定用の関数。サービスフレームの検討結果から、第10フレームが「FIXED」になれば、そのゲームは終了とみなせる。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>「Frame」のインスタンスの作成。クラス図では、「Score」から「Frame」へのコンポジションとして表されている部分。設計上は12個だが、サービスフレームで「次」を参照する場面、第1フレームで「前のフレーム」「前の前のフレーム」を参照する場面で参照するダミーのフレームを追加している。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>スコアの最初の状態を「WAIT_FOR_1ST」にする。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>第1フレームへ「SETUP」イベントを送る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>フレーム番号とフレームの配列のインデックスを対応づける関数（ダミーのフレームを第1フレームの前に追加したためのオフセット）。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>現在のフレームを「次のフレームへ進める」関数。この関数では、次のフレームに「SETUP」イベントを送る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>「現在のフレーム」を参照するための関数。クラス図では関連端名が「current」の「Frame」クラスへの関連で表されている。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>ボーナス計算で使う、「前のフレーム」を得る関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>ボーナス計算で使う、「前の前のフレーム」を得る関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>1投目の後のスペアボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>1投目の後のストライクボーナスを計算する関数。前の前のフレームからストライクが続いていた場合、ここでスコアが確定するので、前の前のフレームへ「DETERMINE」イベントを送る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td>2投目の後のストライクボーナスを計算する関数。前のフレームのスコアが確定するので、前のフレームへ「DETERMINE」イベントを送る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="12"></i><b>12</b></td>
+<td>「のべのトータル」を更新する関数。each_consは、配列から指定した数ずつ要素を取り出す関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="13"></i><b>13</b></td>
+<td>「ゲーム終了」の判定用の関数。サービスフレームの検討結果から、第10フレームが「FIXED」になれば、そのゲームは終了とみなせる。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>ボーナス計算やトータル計算のメソッドは <a href="_behavior_design.html#c_score_code03">リスト 4.8</a> のようになるでしょう。</p>
@@ -1170,40 +1193,40 @@ bool score_is_finished(const Score *score) { // <b class="conum">(13)</b>
 <div id="c_score_code03" class="listingblock">
 <div class="title">リスト 4.8 <code>bowling.c</code> (6)</div>
 <div class="content">
-<pre class="prettyprint highlight linenums:224"><code data-lang="c">static void score_wait_for_1st_proc(Score *score, int pins) { // <b class="conum">(1)</b>
+<pre class="prettyprint highlight linenums:224"><code data-lang="c">static void score_wait_for_1st_proc(Score *score, int pins) { <i class="conum" data-value="1"></i><b>(1)</b>
     Frame *current = score_current(score);
 
-    frame_action(current, PINS, pins); // <b class="conum">(2)</b>
+    frame_action(current, PINS, pins); <i class="conum" data-value="2"></i><b>(2)</b>
     score_calc_spare_bonus_after_1st(score);
     score_calc_strike_bonus_after_1st(score);
     score_update_total(score);
 
-    if (score_is_finished(score)) { // <b class="conum">(3)</b>
+    if (score_is_finished(score)) { <i class="conum" data-value="3"></i><b>(3)</b>
         score-&gt;state = FINISHED;
-    } else if (frame_is_strike(current)) { // <b class="conum">(4)</b>
+    } else if (frame_is_strike(current)) { <i class="conum" data-value="4"></i><b>(4)</b>
         score-&gt;state = WAIT_FOR_1ST;
         score_go_next_frame(score);
     } else {
-        score-&gt;state = WAIT_FOR_2ND; // <b class="conum">(5)</b>
+        score-&gt;state = WAIT_FOR_2ND; <i class="conum" data-value="5"></i><b>(5)</b>
     }
 }
 
-static void score_wait_for_2nd_proc(Score *score, int pins) { // <b class="conum">(6)</b>
+static void score_wait_for_2nd_proc(Score *score, int pins) { <i class="conum" data-value="6"></i><b>(6)</b>
     Frame *current = score_current(score);
 
-    frame_action(current, PINS, pins); // <b class="conum">(7)</b>
+    frame_action(current, PINS, pins); <i class="conum" data-value="7"></i><b>(7)</b>
     score_calc_strike_bonus_after_2nd(score);
     score_update_total(score);
 
-    if (score_is_finished(score)) { // <b class="conum">(8)</b>
+    if (score_is_finished(score)) { <i class="conum" data-value="8"></i><b>(8)</b>
         score-&gt;state = FINISHED;
     } else {
-        score-&gt;state = WAIT_FOR_1ST; // <b class="conum">(9)</b>
+        score-&gt;state = WAIT_FOR_1ST; <i class="conum" data-value="9"></i><b>(9)</b>
         score_go_next_frame(score);
     }
 }
 
-void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
+void score_scoring(Score *score, int pins) { <i class="conum" data-value="10"></i><b>(10)</b>
     switch (score-&gt;state) {
         case WAIT_FOR_1ST:
             score_wait_for_1st_proc(score, pins);
@@ -1217,7 +1240,7 @@ void score_scoring(Score *score, int pins) { // <b class="conum">(10)</b>
     }
 }
 
-void score_print(const Score *score) { // <b class="conum">(11)</b>
+void score_print(const Score *score) { <i class="conum" data-value="11"></i><b>(11)</b>
     printf("Player:%s, Score(id: %s), Frame:%d\n",
            score-&gt;player, score-&gt;id, score-&gt;fno);
     printf("|No|1st|2nd|Total|Frame Score|Spare Bonus|Strike Bonus|Frame State|\n");
@@ -1228,41 +1251,52 @@ void score_print(const Score *score) { // <b class="conum">(11)</b>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>「WAIT_FOR_1ST」状態のときの状態遷移のメソッド。</p>
-</li>
-<li>
-<p>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</p>
-</li>
-<li>
-<p>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</p>
-</li>
-<li>
-<p>「ストライクだった」の場合は、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</p>
-</li>
-<li>
-<p>それ以外のときは2投目を待つので、「WAIT_FOR_2ND」へ遷移する。</p>
-</li>
-<li>
-<p>「WAIT_FOR_2ND」状態のときの状態遷移のメソッド。</p>
-</li>
-<li>
-<p>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</p>
-</li>
-<li>
-<p>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</p>
-</li>
-<li>
-<p>それ以外のときは、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</p>
-</li>
-<li>
-<p>スコアを記録するステートマシン図の振る舞いを担当するメソッド。状態に応じてそれぞれの状態用のメソッドを呼び出す。</p>
-</li>
-<li>
-<p>「スコア」クラスのインスタンスの内容（内包するフレームも含む）を文字列化するメソッド。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>「WAIT_FOR_1ST」状態のときの状態遷移のメソッド。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>「ストライクだった」の場合は、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>それ以外のときは2投目を待つので、「WAIT_FOR_2ND」へ遷移する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>「WAIT_FOR_2ND」状態のときの状態遷移のメソッド。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>現在のフレームについて、ピン数を更新し、ボーナスを計算し、のべのトータルを更新する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>「選択疑似状態」での遷移先の分岐処理。「ゲーム終了」の場合は「FINISHED」へ遷移する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>それ以外のときは、次のフレームへ進んで「WAIT_FOR_1ST」へ遷移する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>スコアを記録するステートマシン図の振る舞いを担当するメソッド。状態に応じてそれぞれの状態用のメソッドを呼び出す。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td>「スコア」クラスのインスタンスの内容（内包するフレームも含む）を文字列化するメソッド。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>これで、フレームとスコアを、それぞれのステートマシン図で表した振る舞いに合わせて動作するプログラムに変換できました。</p>
@@ -1343,12 +1377,12 @@ void game_print(const Game *game);</code></pre>
 <div class="title">リスト 4.10 <code>bowling.c</code> (7)</div>
 <div class="content">
 <pre class="prettyprint highlight linenums:284"><code data-lang="c">void game_init(Game *game) {
-    generate_id(game-&gt;id); // <b class="conum">(1)</b>
+    generate_id(game-&gt;id); <i class="conum" data-value="1"></i><b>(1)</b>
     game-&gt;turn = 0;
     game-&gt;player_count = 0;
 }
 
-void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
+void game_entry(Game *game, const char *name) { <i class="conum" data-value="2"></i><b>(2)</b>
     if (game-&gt;player_count &gt;= MAX_PLAYERS) {
         printf("Maximum number of players reached.\n");
         return;
@@ -1357,28 +1391,28 @@ void game_entry(Game *game, const char *name) { // <b class="conum">(2)</b>
     game-&gt;player_count++;
 }
 
-const char* game_turn_player_name(const Game *game) { // <b class="conum">(3)</b>
+const char* game_turn_player_name(const Game *game) { <i class="conum" data-value="3"></i><b>(3)</b>
     return game-&gt;scores[game-&gt;turn].player;
 }
 
-void game_go_next_turn(Game *game) { // <b class="conum">(4)</b>
+void game_go_next_turn(Game *game) { <i class="conum" data-value="4"></i><b>(4)</b>
     game-&gt;turn = (game-&gt;turn + 1) % game-&gt;player_count;
 }
 
-void game_playing(Game *game, int score_index, int pins) { // <b class="conum">(5)</b>
+void game_playing(Game *game, int score_index, int pins) { <i class="conum" data-value="5"></i><b>(5)</b>
     Score *score = &amp;game-&gt;scores[score_index];
     score_scoring(score, pins);
 
     if (score-&gt;fno &gt; 10) {
-        if (score_is_finished(score)) { // <b class="conum">(6)</b>
+        if (score_is_finished(score)) { <i class="conum" data-value="6"></i><b>(6)</b>
             game_go_next_turn(game);
         }
-    } else if (score_current(score)-&gt;state == BEFORE_1ST) { // <b class="conum">(7)</b>
+    } else if (score_current(score)-&gt;state == BEFORE_1ST) { <i class="conum" data-value="7"></i><b>(7)</b>
         game_go_next_turn(game);
     }
 }
 
-bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
+bool game_is_finished(const Game *game) { <i class="conum" data-value="8"></i><b>(8)</b>
     for (int i = 0; i &lt; game-&gt;player_count; i++) {
         if (!score_is_finished(&amp;game-&gt;scores[i])) {
             return false;
@@ -1387,7 +1421,7 @@ bool game_is_finished(const Game *game) { // <b class="conum">(8)</b>
     return true;
 }
 
-void game_print(const Game *game) { // <b class="conum">(9)</b>
+void game_print(const Game *game) { <i class="conum" data-value="9"></i><b>(9)</b>
     printf("Game(id:%s)\n", game-&gt;id);
     for (int i = 0; i &lt; game-&gt;player_count; i++) {
         score_print(&amp;game-&gt;scores[i]);
@@ -1396,35 +1430,44 @@ void game_print(const Game *game) { // <b class="conum">(9)</b>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>ゲームごとにユニークなIDをつけておく。</p>
-</li>
-<li>
-<p>ゲームに参加するプレーヤーを登録する関数。そのプレーヤーの今回のゲーム分のスコアも用意する。</p>
-</li>
-<li>
-<p>現在プレー中のプレーヤー名を取得する関数。</p>
-</li>
-<li>
-<p>次のプレーヤーに交代する関数。登録したプレーヤーの順に進み、最後まで来たら最初のプレーヤーへ戻る。</p>
-</li>
-<li>
-<p>ゲームを実行する関数。現在のプレーヤーのスコアクラスの <code>scoring</code> 関数を呼び出して1フレーム分のプレーを記録する。</p>
-</li>
-<li>
-<p>サービスフレームでは、2フレーム以上プレーする場合があるので、そのときは交代しない。</p>
-</li>
-<li>
-<p>現在のプレーヤーの現在の状態が「BEFORE_1ST」なら、次のフレームの投球待ちになっているので、プレーヤーを交代する。</p>
-</li>
-<li>
-<p>すべてのプレーヤーがゲーム終了かどうか調べる関数。</p>
-</li>
-<li>
-<p>ゲームの状況を文字列化する関数。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>ゲームごとにユニークなIDをつけておく。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>ゲームに参加するプレーヤーを登録する関数。そのプレーヤーの今回のゲーム分のスコアも用意する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>現在プレー中のプレーヤー名を取得する関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>次のプレーヤーに交代する関数。登録したプレーヤーの順に進み、最後まで来たら最初のプレーヤーへ戻る。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>ゲームを実行する関数。現在のプレーヤーのスコアクラスの <code>scoring</code> 関数を呼び出して1フレーム分のプレーを記録する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>サービスフレームでは、2フレーム以上プレーする場合があるので、そのときは交代しない。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>現在のプレーヤーの現在の状態が「BEFORE_1ST」なら、次のフレームの投球待ちになっているので、プレーヤーを交代する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>すべてのプレーヤーがゲーム終了かどうか調べる関数。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>ゲームの状況を文字列化する関数。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>クラス図にもこの結果を反映しておきましょう（ <a href="_behavior_design.html#update_class_for_game_score00">図 4.22</a> ）。
@@ -1464,20 +1507,20 @@ const char* frame_state_to_string(FrameState state);
 <div id="c_scoresheet_code02" class="listingblock">
 <div class="title">リスト 4.12 <code>bowling.c</code> (8)</div>
 <div class="content">
-<pre class="prettyprint highlight linenums:340"><code data-lang="c">void scoresheet_init(ScoreSheet *sheet, time_t date) { // <b class="conum">(1)</b>
-    generate_id(sheet-&gt;id);  // <b class="conum">(2)</b>
+<pre class="prettyprint highlight linenums:340"><code data-lang="c">void scoresheet_init(ScoreSheet *sheet, time_t date) { <i class="conum" data-value="1"></i><b>(1)</b>
+    generate_id(sheet-&gt;id);  <i class="conum" data-value="2"></i><b>(2)</b>
     sheet-&gt;play_date = date;
     sheet-&gt;game_count = 0;
 }
 
-void scoresheet_add_game(ScoreSheet *sheet, int games) { // <b class="conum">(3)</b>
+void scoresheet_add_game(ScoreSheet *sheet, int games) { <i class="conum" data-value="3"></i><b>(3)</b>
     for (int i = 0; i &lt; games &amp;&amp; sheet-&gt;game_count &lt; MAX_GAMES; i++) {
         game_init(&amp;sheet-&gt;games[sheet-&gt;game_count]);
         sheet-&gt;game_count++;
     }
 }
 
-void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
+void scoresheet_print(const ScoreSheet *sheet) { <i class="conum" data-value="4"></i><b>(4)</b>
     char date_str[64];
     struct tm *tm_info = localtime(&amp;sheet-&gt;play_date);
     strftime(date_str, sizeof(date_str), "%Y-%m-%d %H:%M:%S", tm_info);
@@ -1486,20 +1529,24 @@ void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
 </div>
 </div>
 <div class="colist arabic">
-<ol>
-<li>
-<p>スコアシートを作成するときは、作成時の日時を控えておく。</p>
-</li>
-<li>
-<p>スコアシートごとにユニークなIDをつけておく。</p>
-</li>
-<li>
-<p>希望する数のゲームをシートに追加するメソッド。引数がないときは1組だけ追加する。</p>
-</li>
-<li>
-<p>スコアシートの状況を文字列化するメソッド。</p>
-</li>
-</ol>
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>スコアシートを作成するときは、作成時の日時を控えておく。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>スコアシートごとにユニークなIDをつけておく。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>希望する数のゲームをシートに追加するメソッド。引数がないときは1組だけ追加する。</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>スコアシートの状況を文字列化するメソッド。</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>クラス図にもこの結果を反映しておきましょう（ <a href="_behavior_design.html#update_class_for_scoresheet00">図 4.23</a> ）。
@@ -1626,8 +1673,8 @@ void scoresheet_print(const ScoreSheet *sheet) { // <b class="conum">(4)</b>
 </div>
 <div id="footer">
 <div id="footer-text">
-バージョン html 0808<br>
-最終更新 2026-03-04 11:50:36 +0900
+バージョン html 0822<br>
+最終更新 2026-03-30 16:39:25 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.min.js"></script>

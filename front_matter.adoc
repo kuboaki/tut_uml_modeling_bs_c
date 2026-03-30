@@ -41,7 +41,7 @@ ifdef::backend-pdf[]
 :icontype: svg
 endif::[]
 
-ifdef::backend-html5[]
+ifdef::backend-html5,backend-multipage_html5[]
 :icons: font
 :icon-set: fa
 endif::[]
